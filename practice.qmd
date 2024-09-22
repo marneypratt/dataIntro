@@ -1,5 +1,5 @@
 ---
-title: "Intro to Data Analysis"
+title: "Intro to Data Analysis Practice"
 author: "Your Name Here"
 date: "Sept 24, 2024"
 format: 
@@ -30,6 +30,8 @@ library(labelled) #for labeling variables better
 
 
 ```
+
+## Demo Data
 
 Below are some randomly generated (NOT REAL) data to use for practice. The code for generating the demo data and doing the estimation statistics is based on the [basics tutorial from the dabestr package](https://cran.r-project.org/web/packages/dabestr/vignettes/tutorial_basics.html). Run the following code chunk as is (you don't need to change anything)
 
@@ -78,6 +80,8 @@ Note that this dataset, which we named "df" for data frame, includes a tidy data
 
 The randomly generated data is set up to be similar to the experiment we did earlier. In this case, there are 10 subjects (because we set N \<- 10). Each subject had a HRV measure (in this case, Natural Logarthim of Root Mean Square of Successive Differences or ln RMSSD) recorded during a 5 min baseline recording, during 5 minutes of exercise, and 5 minutes of recovery.
 
+## Descriptive Statistics
+
 First, let's get the full descriptive statistics by running the next code chunk...
 
 ```{r}
@@ -85,20 +89,23 @@ First, let's get the full descriptive statistics by running the next code chunk.
 
 # the code below will calculate descriptive statistics for a variable of interest grouped by another variable
 
+#set the variable you want to summarize
+x.var <- "Measurement" 
+
 df.sum <- df  |>  
   # remove missing values from continuous variables
-  filter(!is.na(Measurement)) |> 
+  filter(!is.na(.data[[x.var]])) |> 
   
   # Group the data by your categorical variable
   group_by(Group) |> 
   
   # calculate the descriptive stats
-  summarize(mean = mean(Measurement), 
-            median = median(Measurement), 
-            SD = sd(Measurement), 
-            IQR = IQR(Measurement), 
-            min = min(Measurement),
-            max = max(Measurement),
+  summarize(mean = mean(.data[[x.var]]), 
+            median = median(.data[[x.var]]), 
+            SD = sd(.data[[x.var]]), 
+            IQR = IQR(.data[[x.var]]), 
+            min = min(.data[[x.var]]),
+            max = max(.data[[x.var]]),
             N = n())
 
 df.sum
@@ -195,6 +202,8 @@ ft
 
 ```
 
+## Estimation Statistics
+
 Next, we want to perform some inferential statistical tests to see if the dependent variable was impacted by the independent variable. Since this experimental design used the same subjects in the three treatments, we need to take that into consideration using a repeated measures type of test.
 
 First, we will use the `dabestr` package to perform a [repeated measures comparison](https://acclab.github.io/dabestr/articles/tutorial_repeated_measures.html) using estimation statitical techniques. In the example below, we will use the same baseline (compare the exercise measurements to the baseline, and also compare the recovery measurements to the baseline).
@@ -228,6 +237,8 @@ The bottom graph shows the [effect size](https://www.estimationstats.com/#/about
 If you click on the other little window of results below the code chunk (the one on the left above), you will see the results of the actual statistical test.
 
 As you can see from the Cumming estimation plot, the distribution of paired mean differences for exercise minus the baseline is well above the zero line. The mean difference is 1.2 and the lower 95% confidence interval does not go below the zero line. The p-value for a t-test conducted was less than 0.0001. This all indicates that the ln RMSSD was significatly higher during exercise than baseline. The mean ln RMSSD was only 0.30 greater on average during recovery than during the baseline recordings. The lower 95% CI does cross below zero and the p-value was 0.35. These results indicate that there was not a significant difference between the recovery period and the baseline.
+
+## NHST
 
 The above estimation analysis only became possible once computers were around to make it feasible to take 5000 bootstrapped samples quickly. Another framework that has been used for a long time to do statistical inference is called "Null Hypothesis Significance Testing" or NHST (see [Pernet 2017](https://f1000research.com/articles/4-621/v5) for an overview).
 
@@ -318,7 +329,6 @@ g1 <- ggplot(df, aes(x=Group, y=Measurement, group = `ID`)) +
       aes(group = 'Group' )) +
   xlab("Time of Measurement") +
   ylab("ln RMSSD") +
-  coord_cartesian(ylim = c(1, 6)) +
   theme_classic(base_size=18) 
 
 # Visualization: plot with p-values
