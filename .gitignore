@@ -8,6 +8,7 @@
 
 # User-specific files
 .Ruserdata
+results_example.qmd
 
 # Example code in package build process
 *-Ex.R
