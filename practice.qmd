@@ -1,0 +1,344 @@
+---
+title: "Intro to Data Analysis"
+author: "Your Name Here"
+date: "Sept 24, 2024"
+format: 
+  html:
+    code-overflow: wrap
+    embed-resources: true
+---
+
+## Load necessary packages
+
+Run the code below at the start of the session to make sure all the necessary packages are loaded.
+
+It is recommended that you put all your code to load packages in one R chunk at the start. Run the chunk below by clicking the little green arrow at the top right of the code chunk.
+
+```{r}
+#| label: setup
+#| warning: false
+#| message: false
+
+suppressPackageStartupMessages(
+  library(tidyverse)) ## for readr, dplyr, ggplot2
+library(ggbeeswarm) ## for jittering points (you can remove this is you did not use a dotplot)
+library(flextable) ## for making formatted tables that can be pasted into Word or Google Docs
+library(dabestr) ##for data analysis using Bootstrap-coupled estimation
+library(rstatix) #pipe friendly framework for basic stats
+library(ggpubr) #publication ready plots
+library(labelled) #for labeling variables better
+
+
+```
+
+Below are some randomly generated (NOT REAL) data to use for practice. The code for generating the demo data and doing the estimation statistics is based on the [basics tutorial from the dabestr package](https://cran.r-project.org/web/packages/dabestr/vignettes/tutorial_basics.html). Run the following code chunk as is (you don't need to change anything)
+
+```{r}
+#| label: demo data
+
+# sets some conditions
+set.seed(12345) # Fix the seed so the results are replicable.
+N <- 10 # The number of samples taken from each population
+
+# Create samples for three different treatments
+# each sample has a normal distribution 
+c1 <- rnorm(N, mean = 3, sd = 0.4)
+t1 <- rnorm(N, mean = 4, sd = 0.5)
+t2 <- rnorm(N, mean = 3.2, sd = 0.6)
+
+
+# Add an `id` column for paired data plotting.
+id <- 1:N
+
+# Combine samples into a DataFrame.
+df <- tibble::tibble(
+  `Baseline` = c1, 
+  `Exercise` = t1, 
+  `Recovery` = t2, 
+  ID = id)
+
+df <- df %>%
+  tidyr::gather(key = Group, value = Measurement, -ID)
+
+
+df <- df |> 
+  labelled::set_variable_labels(
+    ID                = "Subject ID",
+    Group             = "Time of Measurement",
+    Measurement       = "Natural Logarthim of Root Mean Square of Successive Differences"
+  )
+
+#see https://www.pipinghotdata.com/posts/2022-09-13-the-case-for-variable-labels-in-r/ for more help with labeling data
+
+```
+
+Take a look at the dataset we just created by clicking on "df" in the Environment tab in the upper right RStudio window.
+
+Note that this dataset, which we named "df" for data frame, includes a tidy data spreadsheet. There are three columns and 30 observations in each. Each column has a column name and a more descriptive label that we added using the `set_variable_labels` function from the `labelled` package.
+
+The randomly generated data is set up to be similar to the experiment we did earlier. In this case, there are 10 subjects (because we set N \<- 10). Each subject had a HRV measure (in this case, Natural Logarthim of Root Mean Square of Successive Differences or ln RMSSD) recorded during a 5 min baseline recording, during 5 minutes of exercise, and 5 minutes of recovery.
+
+First, let's get the full descriptive statistics by running the next code chunk...
+
+```{r}
+#| label: descriptive stats
+
+# the code below will calculate descriptive statistics for a variable of interest grouped by another variable
+
+df.sum <- df  |>  
+  # remove missing values from continuous variables
+  filter(!is.na(Measurement)) |> 
+  
+  # Group the data by your categorical variable
+  group_by(Group) |> 
+  
+  # calculate the descriptive stats
+  summarize(mean = mean(Measurement), 
+            median = median(Measurement), 
+            SD = sd(Measurement), 
+            IQR = IQR(Measurement), 
+            min = min(Measurement),
+            max = max(Measurement),
+            N = n())
+
+df.sum
+
+
+
+```
+
+How should we round these variables? A good rule of thumb is to use the SD as the indicator of how much average variability there is in your data. Personally, I like to round the SD to 2 significant digits based on recommendations in [Cole et al. (2015)](https://www-ncbi-nlm-nih-gov.libproxy.smith.edu/pmc/articles/PMC4483789/). Then round all the other values to the same decimal place as the rounded SD.
+
+In the case above, we should round the SD to the hundredths place to get it rounded to 2 significant digits. Thus, we will round all the values to the hundredths place.
+
+We also don't need to show ALL these values (in fact, it may not be important to give any of these exact values if the graph itself is sufficient to get your point across). Even though this is a fairly small dataset, we know the data are normally distributed because we randomly drew a sample from a normal distribution to create the dataset. So it would be appropriate to give the mean, SD, and number of subjects (N). The code below would round to the hundredths place and give just the values of interest in a nice formatted table (using the `flextable` package to format the table).
+
+```{r}
+#| label: formatted mean SD
+
+#see https://davidgohel.github.io/flextable/ for more information and formatting options
+
+#set the variable you want to summarize
+x.var <- "Measurement" 
+
+#calculate descriptive stats
+df.sum <- df |> 
+  group_by(Group) |> # grouping variable
+  filter(!is.na(.data[[x.var]])) |> # remove missing values 
+  
+  #calculate the rounded values
+  summarise(Mean = round(mean(.data[[x.var]]), digits=2), 
+            SD = signif(sd(.data[[x.var]]), digits=2),
+            N = n())
+
+
+#create the formatted table
+ft <- flextable(df.sum,
+                cwidth = 0.75) |>  #can vary cell width as needed
+  
+  #bold the headings
+  bold(part = "header") |> 
+  
+  #center columns
+  align(align = "center", part = "all" )
+
+#print the table
+#right click on the table, choose select all, 
+#choose copy, then paste in your document
+#finish formatting as needed in your document
+ft
+```
+
+If this was a small sample and we didn't know the true distribution, you might choose the median, range (min - max), and N.
+
+```{r}
+#| label: formatted descriptive stats
+
+#see https://davidgohel.github.io/flextable/ for more information and formatting options
+
+#set the variable you want to summarize
+x.var <- "Measurement" 
+
+#calculate descriptive stats
+df.med <- df |> 
+  group_by(Group) |> #grouping variable
+  filter(!is.na(.data[[x.var]])) |> # remove missing values 
+  
+  summarise(Median = round(median(.data[[x.var]]), digits=2),
+            min = round(min(.data[[x.var]]), digits=2),
+            max = round(max(.data[[x.var]]), digits=2),
+            N = n()) |> 
+  mutate(Range = paste(min, max, sep = "-")) |> 
+  dplyr::select(-min, -max) |> 
+  relocate(N, .after = last_col())
+  
+
+
+#create the table
+ft <- flextable(df.med,
+                cwidth = 0.75) |>  #can vary cell width as needed
+  
+  #bold the headings
+  bold(part = "header") |> 
+  
+  #center columns
+  align(align = "center", part = "all" ) |> 
+  
+  set_table_properties(layout = "autofit")
+
+#print the table
+#right click on the table, choose select all, 
+#choose copy, then paste in your document
+#finish formatting as needed in your document
+ft
+
+
+```
+
+Next, we want to perform some inferential statistical tests to see if the dependent variable was impacted by the independent variable. Since this experimental design used the same subjects in the three treatments, we need to take that into consideration using a repeated measures type of test.
+
+First, we will use the `dabestr` package to perform a [repeated measures comparison](https://acclab.github.io/dabestr/articles/tutorial_repeated_measures.html) using estimation statitical techniques. In the example below, we will use the same baseline (compare the exercise measurements to the baseline, and also compare the recovery measurements to the baseline).
+
+```{r}
+#| label: est repeated measures
+
+baseline_repeated_measures.mean_diff <- load(df,
+  x = Group, y = Measurement,
+  idx = c(
+    "Baseline", "Exercise",
+    "Recovery"),
+  paired = "baseline", 
+  id_col = ID) %>%
+  mean_diff()
+
+print(baseline_repeated_measures.mean_diff)
+
+dabest_plot(
+  baseline_repeated_measures.mean_diff,
+  swarm_label = "ln RMSSD",
+  raw_marker_size = 0.5, 
+  raw_marker_alpha = 0.3)
+
+```
+
+The top graph shows the raw dependent variable (in this case, a made up value of ln RMSSD) with a line connecting values over time for each subject (called a slopegraph, which was designed by Edward Tufte). Unfortunately, there is no way to add the mean or median for each treatment using the functions in the `dabestr` package. But it does include the sample size on the x-axis which is a plus.
+
+The bottom graph shows the [effect size](https://www.estimationstats.com/#/about-effect-sizes) of the paired mean difference (called a Cumming estimation plot). The shaded curve shows the 5000 bootstrapped samples - basically, it is taking a random sub-sample of your data and calculating the mean difference for each, then it repeats this 5000 times (see the [Estimation Stats background material](https://www.estimationstats.com/#/background) for their explanation) and shows all these mean differences as a distribution. The black point is the mean difference between each treatment (exercise or recovery) and the baseline among all those 5000 resamples, and the dark vertical line error bars indicate the 95% confidence interval.
+
+If you click on the other little window of results below the code chunk (the one on the left above), you will see the results of the actual statistical test.
+
+As you can see from the Cumming estimation plot, the distribution of paired mean differences for exercise minus the baseline is well above the zero line. The mean difference is 1.2 and the lower 95% confidence interval does not go below the zero line. The p-value for a t-test conducted was less than 0.0001. This all indicates that the ln RMSSD was significatly higher during exercise than baseline. The mean ln RMSSD was only 0.30 greater on average during recovery than during the baseline recordings. The lower 95% CI does cross below zero and the p-value was 0.35. These results indicate that there was not a significant difference between the recovery period and the baseline.
+
+The above estimation analysis only became possible once computers were around to make it feasible to take 5000 bootstrapped samples quickly. Another framework that has been used for a long time to do statistical inference is called "Null Hypothesis Significance Testing" or NHST (see [Pernet 2017](https://f1000research.com/articles/4-621/v5) for an overview).
+
+Since we have 3 treatments (baseline, exercise, and recovery) measured for the same subjects, we will complete a repeated measures analysis of variance (ANOVA) to see if the NHST framework gives us the same answer as the estimation statistics framework.
+
+One of the first thing to do when completing an ANOVA (or similar tests) is to test the assumptions of the model. Here, we will test to see if each group is normally distributed or if they have any outliers (the code below was based on the [Repeated Measures ANOVA in R page from Datanovia](https://www.datanovia.com/en/lessons/repeated-measures-anova-in-r/)).
+
+```{r}
+#| label: test assumptions
+
+#make the grouping variable a factor
+df$Group = factor(df$Group,
+                    levels = c("Baseline","Exercise","Recovery"))
+
+#Test to see if each group is normaly distributed
+#p-value should be greater than 0.05 if normal
+df  |> 
+  group_by(Group)  |> 
+  rstatix::shapiro_test(Measurement)
+
+ggpubr::ggqqplot(df, "Measurement", facet.by = "Group")
+
+
+#test for outliers
+df  |> 
+  group_by(Group)  |> 
+  rstatix::identify_outliers(Measurement)
+
+
+```
+
+The first results window to the left above, shows the results of a Shapiro-Wilk test of normality (using the `rstatix` package). The p-value for each group is \>0.05, which indicates they are each not significantly different from the null-hypothesis (the null here is that it is a normal distribution). This is statistics speak to say that they are close enough to a normal distribution for our purposes.
+
+The middle results window above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). Because the points are mostly close to the line and don't stray much outside of the grey shaded area, this indicates that the data are pretty normally distributed.
+
+The last results window to the right above shows how many rows contain outliers. It says 0 rows, which indicates that there are no outliers.
+
+Since these data fit the assumptions of ANOVA well enough, we will now complete the repeated measures ANOVA and create a graph of the results.
+
+pwc
+
+```{r}
+#| label: repeated measures ANOVA
+
+#make the grouping variable a factor
+df$Group = factor(df$Group,
+                    levels = c("Baseline","Exercise","Recovery"))
+
+#avoids scientific notation
+options(scipen = 99)
+
+# Perform Repeated Measures ANOVA with the rstatix package
+rm_anova <- 
+  rstatix::anova_test(
+    data = df,        #dataframe 
+    dv = Measurement, #dependent variable
+    wid = ID,         #subjects column
+    within = Group,   #within-subjects factor variable 
+    type = 3)  # Specifies repeated measures design
+
+
+# Print the results
+get_anova_table(rm_anova)
+
+
+# We are comparing to an F-distribution (F-test) here 
+# DFn indicates the degrees of freedom in the numerator 
+# DFd indicates the degrees of freedom in the denomerator 
+# F is the F-statistic value
+# p specifies the p-value
+# ges is the generalized effect size (amount of variability due to the within-subjects factor)
+
+# pairwise comparisons
+pwc <- df %>%
+  pairwise_t_test(
+    Measurement ~ Group, paired = TRUE,
+    p.adjust.method = "bonferroni"
+    )
+
+as.data.frame(pwc)
+
+#create base plot of data
+g1 <- ggplot(df, aes(x=Group, y=Measurement, group = `ID`)) +
+  geom_point(size = 2, shape = 21, fill = "steelblue", alpha = 0.5) +
+  geom_line(linewidth = 0.2, alpha = 0.5) + 
+  stat_summary(fun = median, fun.min = median, fun.max = median, 
+      geom = "crossbar", width = 0.2, size = 1,
+      aes(group = 'Group' )) +
+  xlab("Time of Measurement") +
+  ylab("ln RMSSD") +
+  coord_cartesian(ylim = c(1, 6)) +
+  theme_classic(base_size=18) 
+
+# Visualization: plot with p-values
+pwc <- pwc  |> 
+  add_xy_position(x = "Group")
+g1 + 
+  stat_pvalue_manual(pwc) +
+  labs(
+    subtitle = get_test_label(rm_anova, detailed = TRUE),
+    caption = get_pwc_label(pwc)
+  )
+
+```
+
+The first results window to the left gives the overall results of the ANOVA test. Because the p-value is quite small (p = 0.0000945), we can say that there is a significant difference in the ln RMSSD among these groups. The generalized effect size (ges) gives the the amount of variability within subjects among the treatments.
+
+We have to perform a series of pairwise comparisons to see which of the groups are different from each other. Here, we used paired t-tests with a Bonferroni adjustment to adjust for the fact that we are doing multiple comparisons on the same set of data. The middle results window above gives the results in table form, and then the last window of results to the right is the graph with all the statistical test results added to it.
+
+The results above the graph give the overall results of the repeated measures ANOVA including the F-value (16.2), the numerator degrees of freedom (2), the denominator degrees of freedom (18), the p-value(\<0.0001), and the generalized eta squared (0.53) (the ggpubr package was used to add the statistics to the plot). The generalized eta squared of 0.53 indicates that 53% of the total variance is explained by the impact of the treatments within the subjects.
+
+The graph shows the data points connected by lines for each subject as well as the median value for each treatment given as the thick horiztonal bar. The thin brackets above the points gives the result for each pairwise comparison done by a paired t-test (pwc: T Test) with p-values adjusted by a Bonferroni correction (p.adjust: Bonferroni). The comparison between baseline and exercise had a p-value of 0.0001, so the \*\*\* indicates above the bracket connecting these two treatments indicates a significant difference. The comparison between the baseline and recovery had a p-value of 0.29, so the ns indicates that this differences is not significant. The comparison between the exercise and recovery treatments had a p-value of 0.003, so the \*\* indicates that this is also a significant difference.
+
+Now we have the results using both frameworks of inferential statistics (estimation statistics and NHST). Here, they basically give the same results. Thus, you could pick which framework makes more sense to you - which one could you explain clearly to an audience?
