@@ -217,7 +217,7 @@ baseline_repeated_measures.mean_diff <- load(df,
     "Baseline", "Exercise",
     "Recovery"),
   paired = "baseline", 
-  id_col = ID) %>%
+  id_col = ID)  |> 
   mean_diff()
 
 print(baseline_repeated_measures.mean_diff)

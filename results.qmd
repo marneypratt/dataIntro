@@ -8,6 +8,10 @@ format:
     embed-resources: true
 ---
 
+## Save as
+
+Before you get started, save this file as "dataIntro_YourName.qmd" where you replace YourName with your actual name (no spaces). This way you won't accidentally overwrite your work with a new copy of the results.qmd template.
+
 ## Load necessary packages
 
 Run the code below at the start of the session to make sure all the necessary packages are loaded.
@@ -75,11 +79,11 @@ Calculate all the descriptive statistics for your HRV variable of choice (for ex
 
 # the code below will calculate descriptive statistics for a variable of interest grouped by another variable
 
-#set the variable you want to summarize
+#replace the blank with a continuous variable
 x.var <- "___" 
 
 df.sum <- hrvData  |>  
-  # remove missing values from continuous variables
+  # remove missing values from continuous variable
   filter(!is.na(.data[[x.var]])) |> 
   
   # Group the data by your categorical variable
@@ -98,15 +102,15 @@ df.sum
 
 ```
 
-Now make a nice formatted table with values rounded and only the values you want to include using the code in the practice.qmd file as a template.
+Now make a nice formatted table with values rounded and only the values you want to include using the script templates
 
-Make sure to replace the following in the code
+Make sure to replace the blanks in the script templates with the following
 
--   dataframe name (replace "df" with "hrvData")
+-   dataframe name: hrvData
 
--   continuous variable name (replace "Measurement" with your HRV variable of choice)
+-   continuous variable name: your HRV variable of choice
 
--   categorical variable name (replace "Group" with "test.period")
+-   categorical variable name: test.period
 
 ```{r}
 #| label: formatted descriptive stats
@@ -118,18 +122,23 @@ Make sure to replace the following in the code
 
 ## Statistical Results and Graph
 
-Pick which framework you want to use to compare among treatments (estimation statistics or NHST). Then copy the code from the practice.qmd and complete that analysis with the hrvData dataset. Again, make sure to do the following replacements in the code:
+Pick which framework you want to use to compare among treatments (estimation statistics or NHST). Then copy the code from the script templates and complete that analysis with the hrvData dataset.
 
--   dataframe name (replace "df" with "hrvData")
+Make sure to replace the blanks in the script templates with the following
 
--   continuous variable name (replace "Measurement" with your HRV variable of choice)
+-   dataframe name: hrvData
 
--   categorical variable name (replace "Group" with "test.period")
+-   continuous variable name: your HRV variable of choice
 
--   subjects variable name (replace "ID" with "subject")
+-   categorical variable name: test.period
+
+```{=html}
+<!-- -->
+```
+-   subjects variable name: subject
 
 ```{r}
-
+#| label: inferential stats and graph
 
 
 
@@ -171,13 +180,13 @@ You can now insert this graph into your Results slide (see the lab notebook entr
 
 Now that you are all done with this activity, complete the following:
 
--   Save this file and give it the name "dataIntro_yourname.qmd"
+-   Save this Quarto file (make sure it has been renamed to "dataIntro_YourName.qmd")
 
 -   Render this Quarto file to HTML (just select the Render menu item at the top of this window)
 
 -   If the HTML file didn't already open in your browser, then click on the name of the file in the Files window and select "View in Web Browser"
 
--   Once the HTML file is open in your web browser, then use the print function within your browser to save it as a PDF
+-   Once the HTML file is open in your web browser, then use the print function within your browser to save it or print it as a PDF
 
 -   Make sure the PDF file is saved somewhere on your computer that you can get to (as with the graph file above, you may first need to export this file to your computer if you are working on the Smith server)
 
