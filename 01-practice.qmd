@@ -324,7 +324,7 @@ line.plot <- df  |>
     x=Group, 
     y=Measurement, 
     group = `ID`)) +
-  geom_point(size = 2,  
+  geom_point(size = 3,  
              color = "orange", 
              alpha = 0.5) +
   geom_line(linewidth = 0.2, 
@@ -333,8 +333,9 @@ line.plot <- df  |>
                fun.min = mean, 
                fun.max = mean, 
                geom = "crossbar", 
+               color = "black",
                width = 0.2, 
-               size = 1,
+               size = 0.5,
       aes(group = 'Group' )) +
   xlab("Time of Measurement") +
   ylab("ln RMSSD") +

@@ -50,7 +50,7 @@ line.plot <- df  |>
     x=.data[[predictor]], 
     y=.data[[cont.var]], 
     group = .data[[subject.ID]])) +
-  geom_point(size = 2,  
+  geom_point(size = 3,  
              color = "orange", 
              alpha = 0.5) +
   geom_line(linewidth = 0.2, 
@@ -59,8 +59,9 @@ line.plot <- df  |>
                fun.min = mean, 
                fun.max = mean, 
                geom = "crossbar", 
+               color = "black",
                width = 0.2, 
-               size = 1,
+               size = 0.5,
                aes(group = .data[[predictor]] )) +
   xlab("Time of Measurement") +
   ylab("___") +   #use the metadata file or axis.lables.R script to add the units
