@@ -41,5 +41,6 @@ If you are working on your desktop, make sure you have the following packages in
 * `rstatix`
 * `ggpubr`
 * `labelled`
+* `glue`
 
 
