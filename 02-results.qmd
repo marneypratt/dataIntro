@@ -1,7 +1,7 @@
 ---
 title: "Practice Data Analysis Results"
 author: "Your Name Here"
-date: "Sept 24, 2024"
+date: "October , 2025"
 format: 
   html:
     code-overflow: wrap
@@ -31,14 +31,20 @@ library(dabestr) ##for data analysis using Bootstrap-coupled estimation
 library(rstatix) #pipe friendly framework for basic stats
 library(ggpubr) #publication ready plots
 library(labelled) #for labeling variables better
+library(glue) #for adding results to graph
+
 ```
 
 ## Import Data
 
-Run the code chunk below to import the data.
+Set your dependent variable (x.var) and independent variable (predictor) in the blanks below. 
+
+Run the code chunk below to import the data. 
 
 ```{r}
 #| label: import data
+#| warning: false
+#| message: false
 
 hrvData <- read_csv("data/hrvData.csv", 
                     col_types = cols(
@@ -47,7 +53,7 @@ hrvData <- read_csv("data/hrvData.csv",
                                    "Exercise", 
                                    "Recovery")), 
                       startDateTime = col_datetime(
-                        format = "%Y-%m-%d %H:%M:%S")))
+                        format = "%Y-%m-%d %H:%M")))
 
 subjects <- read_csv("data/subjects.csv")
 
@@ -67,53 +73,100 @@ hrvData <- hrvData |>
 # for more help with labeling data see   
 # https://www.pipinghotdata.com/posts/2022-09-13-the-case-for-variable-labels-in-r/    
 
+
+#Define your variables and redefine your dataframe name here to avoid having to type them a lot
+
+#replace the blank with the continuous variable of choice 
+#(for example, replace the blank with "ln.RMSSD")
+cont.var <- "___" 
+
+#replace both of the blanks below with the categorical variable that is your factor (this is the grouping variable)
+factor.var <- "___"
+predictor <- "___"
+
+#replace the blank with the name of the column that contains your subject identifiers
+subject.ID <- "___"
+
+#replace the blank with the name of your dataframe here 
+df <- ___
+
+#define the formula using variable names above
+    response <- cont.var
+    formula_string <- paste0(response, " ~ ", predictor)
+    formula_object <- as.formula(formula_string)
+
+
+
 ```
 
 ## Descriptive Statistics
 
-Calculate all the descriptive statistics for your HRV variable of choice (for example, replace "\_\_\_" with "ln.RMSSD")
+Calculate all the descriptive statistics for your HRV variable of choice (for example, replace the blank with "ln.RMSSD")
 
 ```{r}
 #| label: descriptive stats
 
 
-# the code below will calculate descriptive statistics for a variable of interest grouped by another variable
+# the code below will calculate descriptive statistics for the continuous variable of interest grouped by a categorical variable
 
-#replace the blank with a continuous variable
-x.var <- "___" 
-
-df.sum <- hrvData  |>  
+df.sum <- df  |>  
   # remove missing values from continuous variable
-  filter(!is.na(.data[[x.var]])) |> 
+  filter(!is.na(.data[[cont.var]])) |> 
   
   # Group the data by your categorical variable
-  group_by(test.period) |> 
+  group_by(.data[[factor.var]]) |> 
   
   # calculate the descriptive stats
-  summarize(mean = mean(.data[[x.var]]), 
-            median = median(.data[[x.var]]), 
-            SD = sd(.data[[x.var]]), 
-            IQR = IQR(.data[[x.var]]), 
-            min = min(.data[[x.var]]),
-            max = max(.data[[x.var]]),
+  summarize(mean = mean(.data[[cont.var]]), 
+            median = median(.data[[cont.var]]), 
+            SD = sd(.data[[cont.var]]), 
+            IQR = IQR(.data[[cont.var]]), 
+            min = min(.data[[cont.var]]),
+            max = max(.data[[cont.var]]),
             N = n())
 
 df.sum
 
 ```
 
-Now make a nice formatted table with values rounded and only the values you want to include using the script templates
+Before we decide which descriptive statistics to report, let's see if the data has a normal distribution
 
-Make sure to replace the blanks in the script templates with the following
+### Test for Normal Distribution
 
--   dataframe name: hrvData
+Run the code chunk below
 
--   continuous variable name: your HRV variable of choice
+```{r}
+#| label: test assumptions
 
--   categorical variable name: test.period
+
+#Test to see if each group has a normal distribution
+ggpubr::ggqqplot(data = df, 
+                 x = ".data[[cont.var]]", 
+                 facet.by = "test.period"
+                 )
+
+
+#test for outliers
+df  |> 
+  group_by(.data[[factor.var]])  |> 
+  rstatix::identify_outliers(.data[[cont.var]])
+
+
+```
+
+The first results window to the left above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). If the points are mostly close to the line and don't stray much outside of the grey shaded area, this indicates that the data are pretty normally distributed.
+
+The second results window to the right above shows how many rows contain outliers. If it says 0 rows, that would indicate that there are no outliers.
+
+If the data are close enough to a normal distribution, then you can report the mean and SD. If the data are not very normal, then use the median and range for the descriptive statistics.
+
+Now make a nice formatted table with values rounded and only the values you want to include. Open the "script templates" folder and find the script you want to use. Select everything in the script template (ctrl + A on Windows or cmd + A on Macs), then copy the selection (ctrl + C on Windows or cmd + C on Macs). Paste the script template in the code chunk below (make sure there is an empty row under the label)(ctrl + V on Windows or cmd + V on Macs).
+
+Make sure to replace the blanks in the script templates and that you have run the code chunk to import the data and define your variables
 
 ```{r}
 #| label: formatted descriptive stats
+
 
 
 
@@ -122,31 +175,24 @@ Make sure to replace the blanks in the script templates with the following
 
 ## Statistical Results and Graph
 
-Pick which framework you want to use to compare among treatments (estimation statistics or NHST). Then copy the code from the script templates and complete that analysis with the hrvData dataset.
+Pick which way you want to analyze and graph your data (repeated measures estimation statistics using the {dabestr} package or runing Cohen's d effect size tests). Then copy the code from the script templates and complete that analysis with the hrvData dataset.
 
-Make sure to replace the blanks in the script templates with the following
-
--   dataframe name: hrvData
-
--   continuous variable name: your HRV variable of choice
-
--   categorical variable name: test.period
-
-```{=html}
-<!-- -->
-```
--   subjects variable name: subject
+Make sure to replace the blanks in the script templates as directed
 
 ```{r}
 #| label: inferential stats and graph
 
 
 
+
+
+
+
 ```
 
-## 
 
-## Exporting your graph
+
+## Saving and Exporting your Graph
 
 How do you save a copy of your graph to use elsewhere?
 
@@ -160,7 +206,7 @@ When saving with the `ggsave()` function, you need to name the resulting file wi
 
 # save the graph! (.png or .jpg file types are recommended)
 ggsave(filename = "HRVgraph.png",  
-       height = 7, width = 8, units = "in", 
+       height = 5, width = 8, units = "in", 
        dpi = 300)
 ```
 

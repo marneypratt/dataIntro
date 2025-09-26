@@ -7,8 +7,8 @@
 
 
 #replace the first blank with the dataframe name
-#replace the x blank with the continuous variable
-#replace the y blank with the categorical variable
+#replace the x blank with the categorical variable
+#replace the y blank with the continuous variable
 #replace the id_col blank with the subject label variable
 est.stat.mod <- load(___,
                      x = ___, 
@@ -26,4 +26,6 @@ dabest_plot(
   est.stat.mod,
   swarm_label = "___",
   raw_marker_size = 0.5, 
-  raw_marker_alpha = 0.3)
+  raw_marker_alpha = 0.3,
+  swarm_bars = FALSE,
+  contrast_bars = FALSE)

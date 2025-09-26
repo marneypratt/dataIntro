@@ -2,25 +2,23 @@
 # tidyverse
 # flextable
 
+#make sure you have imported your data and defined your variables before running this code
 
 #see https://davidgohel.github.io/flextable/ for more info & formatting options
 
-# replace the blank below with a continuous variable you want to summarize
-x.var <- "___" 
-
 #calculate descriptive stats
 #replace the blank below with the name of the dataframe
-df.sum <- ___ |> 
+df.sum <- df |> 
   
   # replace the blank with the categorical variable(s)
-  group_by(___) |> 
+  group_by(.data[[factor.var]]) |> 
   
   # remove missing values 
-  filter(!is.na(.data[[x.var]])) |> 
+  filter(!is.na(.data[[cont.var]])) |> 
   
   #calculate the rounded values
-  summarise(Mean = round(mean(.data[[x.var]]), digits=2), 
-            SD = signif(sd(.data[[x.var]]), digits=2),
+  summarise(Mean = round(mean(.data[[cont.var]]), digits=2), 
+            SD = signif(sd(.data[[cont.var]]), digits=2),
             N = n())
 
 #create the formatted table

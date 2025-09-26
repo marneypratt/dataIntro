@@ -1,11 +1,13 @@
 ---
 title: "Intro to Data Analysis Practice"
 author: "Your Name Here"
-date: "Sept 24, 2024"
+date: "October , 2025"
 format: 
   html:
     code-overflow: wrap
     embed-resources: true
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ## Load necessary packages
@@ -27,6 +29,7 @@ library(dabestr) ##for data analysis using Bootstrap-coupled estimation
 library(rstatix) #pipe friendly framework for basic stats
 library(ggpubr) #publication ready plots
 library(labelled) #for labeling variables better
+library(glue) #for adding results to graph
 
 
 ```
@@ -78,7 +81,7 @@ Take a look at the dataset we just created by clicking on "df" in the Environmen
 
 Note that this dataset, which we named "df" for data frame, includes a tidy data spreadsheet. There are three columns and 30 observations in each. Each column has a column name and a more descriptive label that we added using the `set_variable_labels` function from the `labelled` package.
 
-The randomly generated data is set up to be similar to the experiment we did earlier. In this case, there are 10 subjects (because we set N \<- 10). Each subject had a HRV measure (in this case, Natural Logarthim of Root Mean Square of Successive Differences or ln RMSSD) recorded during a 5 min baseline recording, during 5 minutes of exercise, and 5 minutes of recovery.
+The randomly generated data is set up to be similar to the experiment we did earlier. In this case, there are 10 subjects (because we set N<- 10). Each subject had a HRV measure (in this case, Natural Logarithm of Root Mean Square of Successive Differences or ln RMSSD) recorded during a 5 min baseline recording, during 5 minutes of exercise, and 5 minutes of recovery.
 
 ## Descriptive Statistics
 
@@ -118,7 +121,37 @@ How should we round these variables? A good rule of thumb is to use the SD as th
 
 In the case above, we should round the SD to the hundredths place to get it rounded to 2 significant digits. Thus, we will round all the values to the hundredths place.
 
-We also don't need to show ALL these values (in fact, it may not be important to give any of these exact values if the graph itself is sufficient to get your point across). Even though this is a fairly small dataset, we know the data are normally distributed because we randomly drew a sample from a normal distribution to create the dataset. So it would be appropriate to give the mean, SD, and number of subjects (N). The code below would round to the hundredths place and give just the values of interest in a nice formatted table (using the `flextable` package to format the table).
+We also don't need to show ALL these values (in fact, it may not be important to give any of these exact values if the graph itself is sufficient to get your point across). To know what values to report as well as how to analyze and graph the results, we need to see if the data has a normal distribution and if there are any outliers.
+
+### Test for Normal Distribution
+
+```{r}
+#| label: test assumptions
+
+#make the grouping variable a factor
+df$Group = factor(df$Group,
+                    levels = c("Baseline","Exercise","Recovery"))
+
+#Test to see if each group has a normal distribution
+ggpubr::ggqqplot(df, "Measurement", facet.by = "Group")
+
+
+#test for outliers
+df  |> 
+  group_by(Group)  |> 
+  rstatix::identify_outliers(Measurement)
+
+
+```
+
+
+The first results window to the left above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). Because the points are mostly close to the line and don't stray much outside of the grey shaded area, this indicates that the data are pretty normally distributed.
+
+The last results window to the right above shows how many rows contain outliers. It says 0 rows, which indicates that there are no outliers.
+
+### Reporting Descriptive Statistics
+
+The results above indicate that this dataset has a normal distribution, so it would be appropriate to give the mean, SD, and number of subjects (N). The code below would round to the hundredths place and give just the values of interest in a nice formatted table (using the `flextable` package to format the table).
 
 ```{r}
 #| label: formatted mean SD
@@ -156,7 +189,7 @@ ft <- flextable(df.sum,
 ft
 ```
 
-If this was a small sample and we didn't know the true distribution, you might choose the median, range (min - max), and N.
+If this dataset was not a normal distribution, you might choose to report the median, range (min - max), and N.
 
 ```{r}
 #| label: formatted descriptive stats
@@ -200,13 +233,16 @@ ft <- flextable(df.med,
 ft
 
 
+
 ```
+ In general, you should choose the most appropriate way to report your descriptive statistics based on the sample size and distribution of the data. Don't give ALL the districptive statistics  - I would pick one of the options above, not both. In this case, since the data show a normal distribution, I would report the Mean, SD, and N.
+
 
 ## Estimation Statistics
 
 Next, we want to perform some inferential statistical tests to see if the dependent variable was impacted by the independent variable. Since this experimental design used the same subjects in the three treatments, we need to take that into consideration using a repeated measures type of test.
 
-First, we will use the `dabestr` package to perform a [repeated measures comparison](https://acclab.github.io/dabestr/articles/tutorial_repeated_measures.html) using estimation statitical techniques. In the example below, we will use the same baseline (compare the exercise measurements to the baseline, and also compare the recovery measurements to the baseline).
+First, we will use the `dabestr` package to perform a [repeated measures comparison](https://acclab.github.io/dabestr/articles/tutorial_repeated_measures.html) using estimation statistical techniques. In the example below, we will use the same baseline (compare the exercise measurements to the baseline, and also compare the recovery measurements to the baseline).
 
 ```{r}
 #| label: est repeated measures
@@ -226,7 +262,9 @@ dabest_plot(
   baseline_repeated_measures.mean_diff,
   swarm_label = "ln RMSSD",
   raw_marker_size = 0.5, 
-  raw_marker_alpha = 0.3)
+  raw_marker_alpha = 0.3,
+  swarm_bars = FALSE,
+  contrast_bars = FALSE)
 
 ```
 
@@ -238,117 +276,97 @@ If you click on the other little window of results below the code chunk (the one
 
 As you can see from the Cumming estimation plot, the distribution of paired mean differences for exercise minus the baseline is well above the zero line. The mean difference is 1.2 and the lower 95% confidence interval does not go below the zero line. The p-value for a t-test conducted was less than 0.0001. This all indicates that the ln RMSSD was significatly higher during exercise than baseline. The mean ln RMSSD was only 0.30 greater on average during recovery than during the baseline recordings. The lower 95% CI does cross below zero and the p-value was 0.35. These results indicate that there was not a significant difference between the recovery period and the baseline.
 
-## NHST
+## Cohen's d Effect Size
 
-The above estimation analysis only became possible once computers were around to make it feasible to take 5000 bootstrapped samples quickly. Another framework that has been used for a long time to do statistical inference is called "Null Hypothesis Significance Testing" or NHST (see [Pernet 2017](https://f1000research.com/articles/4-621/v5) for an overview).
+The {dabestr} package that we used above gives the raw data in a slopegraph and the estimation of the paired mean differences with a Cumming estimation plot. The package does most of the work for you, but it only gives limited ability to change the look of the set of graphs. Some people find the Cumming estimation plot difficult to interpret. 
 
-Since we have 3 treatments (baseline, exercise, and recovery) measured for the same subjects, we will complete a repeated measures analysis of variance (ANOVA) to see if the NHST framework gives us the same answer as the estimation statistics framework.
-
-One of the first thing to do when completing an ANOVA (or similar tests) is to test the assumptions of the model. Here, we will test to see if each group is normally distributed or if they have any outliers (the code below was based on the [Repeated Measures ANOVA in R page from Datanovia](https://www.datanovia.com/en/lessons/repeated-measures-anova-in-r/)).
+With a little more work (and a lot more code), we can manually do a similar thing making a slope graph that also shows the points and the median or mean for each time point. We can also complete an effect test and add the results of the test to the graph. Below, we use a Cohen's d effect size for normal data with equal variance for a repeated measures design.
 
 ```{r}
-#| label: test assumptions
+#| label: cohen's d effect size
 
-#make the grouping variable a factor
+#make the grouping variable a factor with the levels ordered backwards to avoid getting negative effect sizes
+df$Group = factor(df$Group,
+                    levels = c("Recovery","Exercise","Baseline"))
+
+# replace the blank below with a continuous variable of interest
+dep.var <- "Measurement" 
+
+#the code below will calculate the Cohen's d effect size when variances are unequal
+    response <- dep.var
+    predictor <- "Group"
+    formula_string <- paste0(response, " ~ ", predictor)
+    formula_object <- as.formula(formula_string)
+
+#standardized effect size for normal data with equal variance
+#Cohen's d
+cohensD.results  <- 
+  rstatix::cohens_d(
+    data = df,         #put the dataframe name here
+    formula_object,            #dependent variable ~ factor
+    paired = TRUE,       #TRUE for within-subjects, FALSE for between-subjects
+    var.equal = TRUE,
+    hedges.correction = TRUE,
+    ci = TRUE,
+    conf.level = 0.95,
+    ci.type = "bca",
+    nboot = 1000)
+
+
+#make the grouping variable a factor with levels ordered by time
 df$Group = factor(df$Group,
                     levels = c("Baseline","Exercise","Recovery"))
 
-#Test to see if each group is normaly distributed
-#p-value should be greater than 0.05 if normal
-df  |> 
-  group_by(Group)  |> 
-  rstatix::shapiro_test(Measurement)
-
-ggpubr::ggqqplot(df, "Measurement", facet.by = "Group")
-
-
-#test for outliers
-df  |> 
-  group_by(Group)  |> 
-  rstatix::identify_outliers(Measurement)
-
-
-```
-
-The first results window to the left above, shows the results of a Shapiro-Wilk test of normality (using the `rstatix` package). The p-value for each group is \>0.05, which indicates they are each not significantly different from the null-hypothesis (the null here is that it is a normal distribution). This is statistics speak to say that they are close enough to a normal distribution for our purposes.
-
-The middle results window above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). Because the points are mostly close to the line and don't stray much outside of the grey shaded area, this indicates that the data are pretty normally distributed.
-
-The last results window to the right above shows how many rows contain outliers. It says 0 rows, which indicates that there are no outliers.
-
-Since these data fit the assumptions of ANOVA well enough, we will now complete the repeated measures ANOVA and create a graph of the results.
-
-pwc
-
-```{r}
-#| label: repeated measures ANOVA
-
-#make the grouping variable a factor
-df$Group = factor(df$Group,
-                    levels = c("Baseline","Exercise","Recovery"))
-
-#avoids scientific notation
-options(scipen = 99)
-
-# Perform Repeated Measures ANOVA with the rstatix package
-rm_anova <- 
-  rstatix::anova_test(
-    data = df,        #dataframe 
-    dv = Measurement, #dependent variable
-    wid = ID,         #subjects column
-    within = Group,   #within-subjects factor variable 
-    type = 3)  # Specifies repeated measures design
-
-
-# Print the results
-get_anova_table(rm_anova)
-
-
-# We are comparing to an F-distribution (F-test) here 
-# DFn indicates the degrees of freedom in the numerator 
-# DFd indicates the degrees of freedom in the denomerator 
-# F is the F-statistic value
-# p specifies the p-value
-# ges is the generalized effect size (amount of variability due to the within-subjects factor)
-
-# pairwise comparisons
-pwc <- df %>%
-  pairwise_t_test(
-    Measurement ~ Group, paired = TRUE,
-    p.adjust.method = "bonferroni"
-    )
-
-as.data.frame(pwc)
-
-#create base plot of data
-g1 <- ggplot(df, aes(x=Group, y=Measurement, group = `ID`)) +
-  geom_point(size = 2, shape = 21, fill = "steelblue", alpha = 0.5) +
-  geom_line(linewidth = 0.2, alpha = 0.5) + 
-  stat_summary(fun = median, fun.min = median, fun.max = median, 
-      geom = "crossbar", width = 0.2, size = 1,
+#the code below creates a plot that connects the dots within subjects
+#and also adds the Cohen's d results from the analysis above to the graph
+line.plot <- df  |>    
+  ggplot(aes(
+    x=Group, 
+    y=Measurement, 
+    group = `ID`)) +
+  geom_point(size = 2,  
+             color = "orange", 
+             alpha = 0.5) +
+  geom_line(linewidth = 0.2, 
+            alpha = 0.5) + 
+  stat_summary(fun = mean, 
+               fun.min = mean, 
+               fun.max = mean, 
+               geom = "crossbar", 
+               width = 0.2, 
+               size = 1,
       aes(group = 'Group' )) +
   xlab("Time of Measurement") +
   ylab("ln RMSSD") +
-  theme_classic(base_size=18) 
+  
+   labs(title = 
+          glue_data(cohensD.results[3, ], 
+                    "Exercise - Baseline: Cohen's d = {signif(unname(effsize), digits=2)} (95% CI: {signif(conf.low, digits=2)} to {signif(conf.high, digits=2)})")
+        ) +
+  
+     labs(subtitle = 
+          glue_data(cohensD.results[2, ], 
+                    "Recovery - Baseline: Cohen's d = {signif(unname(effsize), digits=2)} (95% CI: {signif(conf.low, digits=2)} to {signif(conf.high, digits=2)})")
+        ) +
+  
 
-# Visualization: plot with p-values
-pwc <- pwc  |> 
-  add_xy_position(x = "Group")
-g1 + 
-  stat_pvalue_manual(pwc) +
-  labs(
-    subtitle = get_test_label(rm_anova, detailed = TRUE),
-    caption = get_pwc_label(pwc)
-  )
+  #additional formatting
+  theme_classic(base_size = 14)  +  #sets the font size
+   theme(
+    plot.title = element_text(size = 12),  # Set title size
+    plot.subtitle = element_text(size = 12) # Set subtitle size to the same value
+  ) +
+  theme(legend.position = "none")   #controls legend/key
+
+line.plot
 
 ```
 
-The first results window to the left gives the overall results of the ANOVA test. Because the p-value is quite small (p = 0.0000945), we can say that there is a significant difference in the ln RMSSD among these groups. The generalized effect size (ges) gives the the amount of variability within subjects among the treatments.
+The resulting graph is similar to the {dabestr} package slopegraph, but here we we used ggplot and have more control to manually change things. This version of the graph includes the points representing the individual subjects (orange dots) that are connected by lines within a subject as well as a black line giving the mean among subjects for each time period. We have also manually added the results of the Cohen's d effect tests above the graph. While this graph does not include an estimation plot, it does include the results of effect tests that we can more manually control which ones we want to show.
 
-We have to perform a series of pairwise comparisons to see which of the groups are different from each other. Here, we used paired t-tests with a Bonferroni adjustment to adjust for the fact that we are doing multiple comparisons on the same set of data. The middle results window above gives the results in table form, and then the last window of results to the right is the graph with all the statistical test results added to it.
+The Exercise - Baseline comparison had a large magnitude effect size of 1.8 (look at the cohensD.results dataframe and you can see how the magnitude of the effect size is categorized). The 95% Confidence interval values are also both positive, which means that the 95% CI does not cross over zero - indicating that the average ln RMSSD value was significantly greater after exercise than at baseline (you can look at the {dabestr} package Cummings estimation plot to see this shown visually). 
 
-The results above the graph give the overall results of the repeated measures ANOVA including the F-value (16.2), the numerator degrees of freedom (2), the denominator degrees of freedom (18), the p-value(\<0.0001), and the generalized eta squared (0.53) (the ggpubr package was used to add the statistics to the plot). The generalized eta squared of 0.53 indicates that 53% of the total variance is explained by the impact of the treatments within the subjects.
+The Recovery - Baseline comparison had a small magnitude effect size of 0.33. The lower 95% CI was negative (below zero), but the upper 95% CI was positive (above zero). This indicates that the 95% CI crosses zero (again, you can look at the {dabestr} package Cummings estimation plot to see this shown visually) and means that the average ln RMSSD value was not significantly different from baseline.
 
-The graph shows the data points connected by lines for each subject as well as the median value for each treatment given as the thick horiztonal bar. The thin brackets above the points gives the result for each pairwise comparison done by a paired t-test (pwc: T Test) with p-values adjusted by a Bonferroni correction (p.adjust: Bonferroni). The comparison between baseline and exercise had a p-value of 0.0001, so the \*\*\* indicates above the bracket connecting these two treatments indicates a significant difference. The comparison between the baseline and recovery had a p-value of 0.29, so the ns indicates that this differences is not significant. The comparison between the exercise and recovery treatments had a p-value of 0.003, so the \*\* indicates that this is also a significant difference.
+These two different analyses gave the same general results. The only difference in how the results are displayed. You can choose which one you prefer of these two options (don't give both!).
 
-Now we have the results using both frameworks of inferential statistics (estimation statistics and NHST). Here, they basically give the same results. Thus, you could pick which framework makes more sense to you - which one could you explain clearly to an audience?

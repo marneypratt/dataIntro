@@ -7,7 +7,7 @@
 # your categorical variable must also be categorized as a factor
 
 
-#Test to see if each group is normaly distributed
+#Test to see if each group is normally distributed
 #p-value should be greater than 0.05 if normal
 #replace each blank with the item indicated by comment to the right
 __ |> #dataframe

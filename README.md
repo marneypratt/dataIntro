@@ -2,7 +2,7 @@
 
 ### by Marney Pratt
 
-### Last updated on September 24, 2024
+### Last updated on September 25, 2025
 
 This webpage details how to download the Introduction to Data Analysis for Bio 201 set of activities.
 
