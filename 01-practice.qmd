@@ -92,24 +92,28 @@ First, let's get the full descriptive statistics by running the next code chunk.
 
 # the code below will calculate descriptive statistics for a variable of interest grouped by another variable
 
-#set the variable you want to summarize
-x.var <- "Measurement" 
+# replace the blank below with a continuous variable you want to summarize
+dep.var <- "Measurement" 
 
-df.sum <- df  |>  
+# create a new dataframe called 'df.sum'
+# start with the full dataframe (in this case, called 'df') then..
+df.sum <- df  |> 
+  
   # remove missing values from continuous variables
-  filter(!is.na(.data[[x.var]])) |> 
+  filter(!is.na(.data[[dep.var]])) |> 
   
   # Group the data by your categorical variable
   group_by(Group) |> 
   
   # calculate the descriptive stats
-  summarize(mean = mean(.data[[x.var]]), 
-            median = median(.data[[x.var]]), 
-            SD = sd(.data[[x.var]]), 
-            IQR = IQR(.data[[x.var]]), 
-            min = min(.data[[x.var]]),
-            max = max(.data[[x.var]]),
-            N = n())
+  summarize(Sample.size = n(),
+            Min = min(.data[[dep.var]]),
+            Q1 = quantile(.data[[dep.var]], .25),
+            Median = median(.data[[dep.var]]),
+            Q3 = quantile(.data[[dep.var]], .75),
+            Max = max(.data[[dep.var]]),
+            Mean = mean(.data[[dep.var]]),              
+            SD = sd(.data[[dep.var]]))
 
 df.sum
 
@@ -159,16 +163,16 @@ The results above indicate that this dataset has a normal distribution, so it wo
 #see https://davidgohel.github.io/flextable/ for more information and formatting options
 
 #set the variable you want to summarize
-x.var <- "Measurement" 
+dep.var <- "Measurement" 
 
 #calculate descriptive stats
 df.sum <- df |> 
   group_by(Group) |> # grouping variable
-  filter(!is.na(.data[[x.var]])) |> # remove missing values 
+  filter(!is.na(.data[[dep.var]])) |> # remove missing values 
   
   #calculate the rounded values
-  summarise(Mean = round(mean(.data[[x.var]]), digits=2), 
-            SD = signif(sd(.data[[x.var]]), digits=2),
+  summarise(Mean = round(mean(.data[[dep.var]]), digits=2), 
+            SD = signif(sd(.data[[dep.var]]), digits=2),
             N = n())
 
 
@@ -197,16 +201,16 @@ If this dataset was not a normal distribution, you might choose to report the me
 #see https://davidgohel.github.io/flextable/ for more information and formatting options
 
 #set the variable you want to summarize
-x.var <- "Measurement" 
+dep.var <- "Measurement" 
 
 #calculate descriptive stats
 df.med <- df |> 
   group_by(Group) |> #grouping variable
-  filter(!is.na(.data[[x.var]])) |> # remove missing values 
+  filter(!is.na(.data[[dep.var]])) |> # remove missing values 
   
-  summarise(Median = round(median(.data[[x.var]]), digits=2),
-            min = round(min(.data[[x.var]]), digits=2),
-            max = round(max(.data[[x.var]]), digits=2),
+  summarise(Median = round(median(.data[[dep.var]]), digits=2),
+            min = round(min(.data[[dep.var]]), digits=2),
+            max = round(max(.data[[dep.var]]), digits=2),
             N = n()) |> 
   mutate(Range = paste(min, max, sep = "-")) |> 
   dplyr::select(-min, -max) |> 
