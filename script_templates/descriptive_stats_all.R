@@ -17,12 +17,13 @@ df.sum <- ___  |>
   group_by(.data[[factor.var]]) |> 
   
   # calculate the descriptive stats
-  summarize(mean = mean(.data[[cont.var]]), 
-            median = median(.data[[cont.var]]), 
-            SD = sd(.data[[cont.var]]), 
-            IQR = IQR(.data[[cont.var]]), 
-            min = min(.data[[cont.var]]),
-            max = max(.data[[cont.var]]),
-            N = n())
+  summarize(Sample.size = n(),
+            Min = min(.data[[cont.var]]),
+            Q1 = quantile(.data[[cont.var]], .25),
+            Median = median(.data[[cont.var]]),
+            Q3 = quantile(.data[[cont.var]], .75),
+            Max = max(.data[[cont.var]]),
+            Mean = mean(.data[[cont.var]]),              
+            SD = sd(.data[[cont.var]]))
 
 df.sum
