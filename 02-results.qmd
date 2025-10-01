@@ -101,7 +101,7 @@ df <- ___
 
 ## Descriptive Statistics
 
-Calculate all the descriptive statistics for your HRV variable of choice (for example, replace the blank with "ln.RMSSD")
+Calculate all the descriptive statistics for your HRV variable of choice by running the code below
 
 ```{r}
 #| label: descriptive stats
@@ -133,7 +133,7 @@ Before we decide which descriptive statistics to report, let's see if the data h
 
 ### Test for Normal Distribution
 
-Run the code chunk below
+Run the code chunk below (if it gives you warnings with the output, try running it a second time. For some reason, it usually works the second time)
 
 ```{r}
 #| label: test assumptions
