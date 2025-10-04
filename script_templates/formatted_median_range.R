@@ -6,6 +6,19 @@
 
 #see https://davidgohel.github.io/flextable/ for more info & formatting options
 
+#see https://davidgohel.github.io/flextable/ for more info & formatting options
+
+# Use the following for digits in the `round` function
+# -   rounding to the hundreds place use digits=-2
+# -   rounding to the tens place use digits=-1
+# -   rounding to the ones place use digits=0
+# -   rounding to the tenths place use digits=1
+# -   rounding to the hundredths place use digits=2
+
+
+#set the number of digits to round to based on the rules above (this blank should be just a number)
+round.digit <- ___
+
 
 #calculate descriptive stats
 #replace the blank below with the name of the dataframe
@@ -18,9 +31,9 @@ df.sum <- df |>
   filter(!is.na(.data[[cont.var]])) |> 
   
   #calculate the rounded values
-  summarise(Median = round(median(.data[[cont.var]]), digits=2),
-            min = round(min(.data[[cont.var]]), digits=2),
-            max = round(max(.data[[cont.var]]), digits=2),
+  summarise(Median = round(median(.data[[cont.var]]), digits=round.digit),
+            min = round(min(.data[[cont.var]]), digits=round.digit),
+            max = round(max(.data[[cont.var]]), digits=round.digit),
             N = n()) |> 
   mutate(Range = paste(min, max, sep = "-")) |> 
   dplyr::select(-min, -max) |> 

@@ -10,7 +10,7 @@ format:
 
 ## Save as
 
-Before you get started, save this file as "dataIntro_YourName.qmd" where you replace YourName with your actual name (no spaces). This way you won't accidentally overwrite your work with a new copy of the results.qmd template.
+Before you get started, save this file as "dataIntro_YourName.qmd" where you replace YourName with your actual name (no spaces). 
 
 ## Load necessary packages
 
@@ -37,9 +37,9 @@ library(glue) #for adding results to graph
 
 ## Import Data
 
-Set your dependent variable (x.var) and independent variable (predictor) in the blanks below. 
+Set your dependent variable (x.var) and independent variable (predictor) in the blanks below.
 
-Run the code chunk below to import the data. 
+Run the code chunk below to import the data.
 
 ```{r}
 #| label: import data
@@ -69,15 +69,33 @@ hrvData <- hrvData |>
   left_join(subjects) |> 
   set_variable_labels(!!!variable_labels)
 
+#if you want to remove an outlier
+#fill in the blank with the number of the subject you want to remove
+#remove the hashtags in front of the code below
+# hrvData2 <- hrvData |> 
+#   dplyr::filter(subject != ___)
+
 
 # for more help with labeling data see   
 # https://www.pipinghotdata.com/posts/2022-09-13-the-case-for-variable-labels-in-r/    
+```
 
+Take a look at the dataset we just created by clicking on "hrvData" in the Environment tab in the upper right RStudio window.
+
+hrvData is a tidy data spreadsheet. There are 20 columns and 33 observations in each column. Each column has a column name and a more descriptive label that we added using the `set_variable_labels` function from the `labelled` package.
+
+Recall that each subject had their heart beats recorded during a 5 min baseline recording, during 5 minutes of exercise, and 5 minutes of recovery.
+
+Next we will relabel some of our variables so they can easily be used with the template code and avoid rewriting the column names a lot of times.
+
+Please **ONLY** replace things in the blanks as directed. Do not change anything else.
+
+```{r}
+#| label: define variables
 
 #Define your variables and redefine your dataframe name here to avoid having to type them a lot
 
 #replace the blank with the continuous variable of choice 
-#(for example, replace the blank with "ln.RMSSD")
 cont.var <- "___" 
 
 #replace both of the blanks below with the categorical variable that is your factor (this is the grouping variable)
@@ -101,7 +119,17 @@ df <- ___
 
 ## Descriptive Statistics
 
-Calculate all the descriptive statistics for your HRV variable of choice by running the code below
+Descriptive statistics are useful to understand your data including
+
+-   What is the measure of central tendency - or typical value (mean, median, mode)
+-   What is the dispersion - or amount of variability (SD, IQR (Q1-Q3), Range (min-max))
+-   What is the sample size within each group (N)
+
+These values also are useful to know to make decisions about how to report your results. For example, the standard deviation (SD) gives the average amount of variability in the data and helps us determine how to round values appropriately. The minimum and maximum values can help you determine what the best values would be for your axis limits on a graph.
+
+Let's calculate the descriptive statistics for your HRV variable of interest. Since we already defined the continuous dependent variable once as `cont.var` we can use `.data[[cont.var]]` to put that variable in each function so we don't have to type the variable name a bunch of times.
+
+Run the code below without changing anything in it
 
 ```{r}
 #| label: descriptive stats
@@ -127,9 +155,15 @@ df.sum <- df  |>
 
 df.sum
 
+
 ```
 
+If the output is hard to read because of a smaller screen, try clicking the "Show in New Window" pop-out icon in the upper right of the output to open the output in its own window.
+
+How do we report these values? We have to round appropriately and include the correct units as well as decide which subset of these values to report.
+
 Before we decide which descriptive statistics to report, let's see if the data has a normal distribution
+
 
 ### Test for Normal Distribution
 
@@ -141,7 +175,7 @@ Run the code chunk below (if it gives you warnings with the output, try running 
 
 #Test to see if each group has a normal distribution
 ggpubr::ggqqplot(data = df, 
-                 x = ".data[[cont.var]]", 
+                 x = {{ cont.var }}, 
                  facet.by = "test.period"
                  )
 
@@ -156,13 +190,52 @@ df  |>
 
 The first results window to the left above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). If the points are mostly close to the line and don't stray much outside of the grey shaded area, this indicates that the data are pretty normally distributed.
 
-The second results window to the right above shows how many rows contain outliers. If it says 0 rows, that would indicate that there are no outliers.
+The second results window to the right above shows how many rows contain outliers. If it says 0 rows, that would indicate that there are no outliers. If there are outliers, you can run the whole analysis with and without the outliers to see if that changes the outcome. 
 
-If the data are close enough to a normal distribution, then you can report the mean and SD. If the data are not very normal, then use the median and range for the descriptive statistics.
+If the data are close enough to a normal distribution, then you can report the mean and SD. If the data are not very normal, then use the median and IQR or range for the descriptive statistics (for smaller datasets, I usually recommend using the median and range).
+
+Once we know which values we want to report, we still need to decide how to round these values.
+
+A good rule of thumb is to use the SD as the indicator of how much average variability there is in your data. Personally, I like to round the SD to 2 significant digits based on recommendations in [Cole et al. (2015)](https://www-ncbi-nlm-nih-gov.libproxy.smith.edu/pmc/articles/PMC4483789/). Then round all the other values to the same decimal place as the rounded SD.
+
+Start by rounding the standard deviation (SD) to 2 SIGNIFICANT DIGITS.
+
+We will use the `signif` function with `digits=2` to round the SD to 2 significant digits. replace the blanks below as directed then run the code.
+
+```{r}
+#| label: rounded SD
+
+
+# replace the blank with the cleaned data frame name
+df  |>   
+  
+  # replace the blank with the categorical variable(s)
+  group_by(.data[[factor.var]]) |> 
+  
+  # calculate the SD rounded to 2 significant digits
+  summarize(SD = signif(sd(.data[[cont.var]]), digits=2))
+
+```
+To round other values (mean, median, quartiles, etc), round to the same DECIMAL place as the SD rounded to 2 significant figures. Rounding the SD tells us how variable the data are and how many decimals we can report to. Thus, look at what decimal place the SD was rounded to for 2 significant digits.
+
+We will use the `round` function to round our values. This is what the help file says about the `round` function
+
+"`round` rounds the values in its first argument to the specified number of decimal places (default 0). See ‘Details’ about “round to even” when rounding off a 5.
+
+Rounding to a negative number of digits means rounding to a power of ten, so for example round(x, digits = -2) rounds to the nearest hundred."
+
+Use the following for digits in the `round` function
+
+-   rounding to the hundreds place use digits=-2
+-   rounding to the tens place use digits=-1
+-   rounding to the ones place use digits=0
+-   rounding to the tenths place use digits=1
+-   rounding to the hundredths place use digits=2
+
 
 Now make a nice formatted table with values rounded and only the values you want to include. Open the "script templates" folder and find the script you want to use. Select everything in the script template (ctrl + A on Windows or cmd + A on Macs), then copy the selection (ctrl + C on Windows or cmd + C on Macs). Paste the script template in the code chunk below (make sure there is an empty row under the label)(ctrl + V on Windows or cmd + V on Macs).
 
-Make sure to replace the blanks in the script templates and that you have run the code chunk to import the data and define your variables
+Make sure to replace the blank in the script template with the proper rounding digit as indicated above. Don't change anything else, just replace the one blank
 
 ```{r}
 #| label: formatted descriptive stats
@@ -175,7 +248,7 @@ Make sure to replace the blanks in the script templates and that you have run th
 
 ## Statistical Results and Graph
 
-Pick which way you want to analyze and graph your data (repeated measures estimation statistics using the {dabestr} package or runing Cohen's d effect size tests). Then copy the code from the script templates and complete that analysis with the hrvData dataset.
+Pick which way you want to analyze and graph your data (repeated measures estimation statistics using the {dabestr} package or runing Cohen's d effect size tests). Then copy the code from the script templates and paste it below.
 
 Make sure to replace the blanks in the script templates as directed
 
@@ -189,8 +262,6 @@ Make sure to replace the blanks in the script templates as directed
 
 
 ```
-
-
 
 ## Saving and Exporting your Graph
 

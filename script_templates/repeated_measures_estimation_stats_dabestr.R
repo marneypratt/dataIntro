@@ -21,7 +21,7 @@ est.stat.mod <- load(___,
 print(est.stat.mod)
 
 #replace the blank with the continuous variable label
-#this will label the graph, it can have spaces
+#this will label the graph, it can have spaces and should have units as needed
 dabest_plot(
   est.stat.mod,
   swarm_label = "___",
