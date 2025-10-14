@@ -25,13 +25,12 @@ It is recommended that you put all your code to load packages in one R chunk at 
 
 suppressPackageStartupMessages(
   library(tidyverse)) ## for readr, dplyr, ggplot2
-library(ggbeeswarm) ## for jittering points (you can remove this is you did not use a dotplot)
+library(ggbeeswarm) ## for jittering points (you can remove this if you did not use a dotplot)
 library(flextable) ## for making formatted tables that can be pasted into Word or Google Docs
-library(dabestr) ##for data analysis using Bootstrap-coupled estimation
 library(rstatix) #pipe friendly framework for basic stats
-library(ggpubr) #publication ready plots
+library(ggpubr) #publication ready plots & QQ plots
 library(labelled) #for labeling variables better
-library(glue) #for adding results to graph
+
 
 ```
 
@@ -324,6 +323,7 @@ line.plot <- df  |>
 line.plot
 
 ```
+
 Make sure you have inlcuded proper axis titles that include units where needed. Make sure to also use the correct measure of central tendency (mean if data are normal, median if data are not normal). You can change the stat_summary code above from mean to median as needed.
 
 How do you save a copy of your graph to use elsewhere?
