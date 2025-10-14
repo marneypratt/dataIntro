@@ -75,6 +75,11 @@ df <- df |>
 
 #see https://www.pipinghotdata.com/posts/2022-09-13-the-case-for-variable-labels-in-r/ for more help with labeling data
 
+#make the catagorical variable a factor
+df$Group = factor(df$Group,
+                    levels = c("Baseline","Exercise","Recovery"))
+
+
 ```
 
 Take a look at the dataset we just created by clicking on "df" in the Environment tab in the upper right RStudio window.
@@ -82,6 +87,23 @@ Take a look at the dataset we just created by clicking on "df" in the Environmen
 Note that this dataset, which we named "df" for data frame, includes a tidy data spreadsheet. There are three columns and 30 observations in each. Each column has a column name and a more descriptive label that we added using the `set_variable_labels` function from the `labelled` package.
 
 The randomly generated data is set up to be similar to the experiment we did earlier. In this case, there are 10 subjects (because we set N<- 10). Each subject had a HRV measure (in this case, Natural Logarithm of Root Mean Square of Successive Differences or ln RMSSD) recorded during a 5 min baseline recording, during 5 minutes of exercise, and 5 minutes of recovery.
+
+## Define Variables
+
+To make using template code easier and avoid typing the variable names many times, we will define our variables below to change the column names used in the dataframe to be more standardize (for example the "Measurement" column that contains the continuous variable of interest is relabeled as "cont.var" )
+
+```{r}
+#| label: define variables
+
+# replace the blank below with a continuous variable you want to summarize
+cont.var <- "Measurement" 
+
+# replace the blank below with the categorical variable (also called a factor) 
+# this will be used to group the continuous variable
+factor.var <- "Group" 
+
+```
+
 
 ## Descriptive Statistics
 
@@ -92,28 +114,25 @@ First, let's get the full descriptive statistics by running the next code chunk.
 
 # the code below will calculate descriptive statistics for a variable of interest grouped by another variable
 
-# replace the blank below with a continuous variable you want to summarize
-dep.var <- "Measurement" 
-
 # create a new dataframe called 'df.sum'
 # start with the full dataframe (in this case, called 'df') then..
 df.sum <- df  |> 
   
   # remove missing values from continuous variables
-  filter(!is.na(.data[[dep.var]])) |> 
+  filter(!is.na(.data[[cont.var]])) |> 
   
   # Group the data by your categorical variable
-  group_by(Group) |> 
+  group_by(.data[[factor.var]]) |> 
   
   # calculate the descriptive stats
   summarize(Sample.size = n(),
-            Min = min(.data[[dep.var]]),
-            Q1 = quantile(.data[[dep.var]], .25),
-            Median = median(.data[[dep.var]]),
-            Q3 = quantile(.data[[dep.var]], .75),
-            Max = max(.data[[dep.var]]),
-            Mean = mean(.data[[dep.var]]),              
-            SD = sd(.data[[dep.var]]))
+            Min = min(.data[[cont.var]]),
+            Q1 = quantile(.data[[cont.var]], .25),
+            Median = median(.data[[cont.var]]),
+            Q3 = quantile(.data[[cont.var]], .75),
+            Max = max(.data[[cont.var]]),
+            Mean = mean(.data[[cont.var]]),              
+            SD = sd(.data[[cont.var]]))
 
 df.sum
 
@@ -127,31 +146,40 @@ In the case above, we should round the SD to the hundredths place to get it roun
 
 We also don't need to show ALL these values (in fact, it may not be important to give any of these exact values if the graph itself is sufficient to get your point across). To know what values to report as well as how to analyze and graph the results, we need to see if the data has a normal distribution and if there are any outliers.
 
-### Test for Normal Distribution
+### Test Assumption
+
+First we will use a QQ plot to see if the distribution is normal
 
 ```{r}
-#| label: test assumptions
+#| label: normal distribution
 
-#make the grouping variable a factor
-df$Group = factor(df$Group,
-                    levels = c("Baseline","Exercise","Recovery"))
-
-#Test to see if each group has a normal distribution
-ggpubr::ggqqplot(df, "Measurement", facet.by = "Group")
-
-
-#test for outliers
-df  |> 
-  group_by(Group)  |> 
-  rstatix::identify_outliers(Measurement)
-
+#make a QQ plot for the continuous variable
+#this tests to see if each group has a normal distribution
+ggpubr::ggqqplot(
+  data = df,                  #put the data frame here 
+  x = {{ cont.var }},            #put the continuous variable here
+  facet.by = {{ factor.var }}  #put the factor variable here
+)  
 
 ```
 
 
-The first results window to the left above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). Because the points are mostly close to the line and don't stray much outside of the grey shaded area, this indicates that the data are pretty normally distributed.
+Above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). Because the points are mostly close to the line and don't stray much outside of the grey shaded area, this indicates that the data are pretty normally distributed.
 
-The last results window to the right above shows how many rows contain outliers. It says 0 rows, which indicates that there are no outliers.
+Next, we will look for outliers.
+
+```{r}
+#| label: test for outliers
+
+#test for outliers
+df  |> 
+  group_by(.data[[factor.var]])  |> 
+  rstatix::identify_outliers({{ cont.var }}) 
+
+```
+
+
+The result above shows how many rows contain outliers. It says 0 rows, which indicates that there were no outliers.
 
 ### Reporting Descriptive Statistics
 
@@ -162,17 +190,15 @@ The results above indicate that this dataset has a normal distribution, so it wo
 
 #see https://davidgohel.github.io/flextable/ for more information and formatting options
 
-#set the variable you want to summarize
-dep.var <- "Measurement" 
 
 #calculate descriptive stats
 df.sum <- df |> 
-  group_by(Group) |> # grouping variable
-  filter(!is.na(.data[[dep.var]])) |> # remove missing values 
+  group_by(.data[[factor.var]]) |> # grouping variable
+  filter(!is.na(.data[[cont.var]])) |> # remove missing values 
   
   #calculate the rounded values
-  summarise(Mean = round(mean(.data[[dep.var]]), digits=2), 
-            SD = signif(sd(.data[[dep.var]]), digits=2),
+  summarise(Mean = round(mean(.data[[cont.var]]), digits=2), 
+            SD = signif(sd(.data[[cont.var]]), digits=2),
             N = n())
 
 
@@ -200,17 +226,15 @@ If this dataset was not a normal distribution, you might choose to report the me
 
 #see https://davidgohel.github.io/flextable/ for more information and formatting options
 
-#set the variable you want to summarize
-dep.var <- "Measurement" 
 
 #calculate descriptive stats
 df.med <- df |> 
-  group_by(Group) |> #grouping variable
-  filter(!is.na(.data[[dep.var]])) |> # remove missing values 
+  group_by(.data[[factor.var]]) |> #grouping variable
+  filter(!is.na(.data[[cont.var]])) |> # remove missing values 
   
-  summarise(Median = round(median(.data[[dep.var]]), digits=2),
-            min = round(min(.data[[dep.var]]), digits=2),
-            max = round(max(.data[[dep.var]]), digits=2),
+  summarise(Median = round(median(.data[[cont.var]]), digits=2),
+            min = round(min(.data[[cont.var]]), digits=2),
+            max = round(max(.data[[cont.var]]), digits=2),
             N = n()) |> 
   mutate(Range = paste(min, max, sep = "-")) |> 
   dplyr::select(-min, -max) |> 
@@ -242,87 +266,15 @@ ft
  In general, you should choose the most appropriate way to report your descriptive statistics based on the sample size and distribution of the data. Don't give ALL the districptive statistics  - I would pick one of the options above, not both. In this case, since the data show a normal distribution, I would report the Mean, SD, and N.
 
 
-## Estimation Statistics
+## Graphing the Results
 
-Next, we want to perform some inferential statistical tests to see if the dependent variable was impacted by the independent variable. Since this experimental design used the same subjects in the three treatments, we need to take that into consideration using a repeated measures type of test.
-
-First, we will use the `dabestr` package to perform a [repeated measures comparison](https://acclab.github.io/dabestr/articles/tutorial_repeated_measures.html) using estimation statistical techniques. In the example below, we will use the same baseline (compare the exercise measurements to the baseline, and also compare the recovery measurements to the baseline).
+Next we will look at the data to see if we can discern any interesting patterns. Since the sample size is small and we have repeated measures for the same subjects, we will show all the points and connect them for each subject. We will also include a measure of central tendency for all the subects at each time point.
 
 ```{r}
-#| label: est repeated measures
-
-baseline_repeated_measures.mean_diff <- load(df,
-  x = Group, y = Measurement,
-  idx = c(
-    "Baseline", "Exercise",
-    "Recovery"),
-  paired = "baseline", 
-  id_col = ID)  |> 
-  mean_diff()
-
-print(baseline_repeated_measures.mean_diff)
-
-dabest_plot(
-  baseline_repeated_measures.mean_diff,
-  swarm_label = "ln RMSSD",
-  raw_marker_size = 0.5, 
-  raw_marker_alpha = 0.3,
-  swarm_bars = FALSE,
-  contrast_bars = FALSE)
-
-```
-
-The top graph shows the raw dependent variable (in this case, a made up value of ln RMSSD) with a line connecting values over time for each subject (called a slopegraph, which was designed by Edward Tufte). Unfortunately, there is no way to add the mean or median for each treatment using the functions in the `dabestr` package. But it does include the sample size on the x-axis which is a plus.
-
-The bottom graph shows the [effect size](https://www.estimationstats.com/#/about-effect-sizes) of the paired mean difference (called a Cumming estimation plot). The shaded curve shows the 5000 bootstrapped samples - basically, it is taking a random sub-sample of your data and calculating the mean difference for each, then it repeats this 5000 times (see the [Estimation Stats background material](https://www.estimationstats.com/#/background) for their explanation) and shows all these mean differences as a distribution. The black point is the mean difference between each treatment (exercise or recovery) and the baseline among all those 5000 resamples, and the dark vertical line error bars indicate the 95% confidence interval.
-
-If you click on the other little window of results below the code chunk (the one on the left above), you will see the results of the actual statistical test.
-
-As you can see from the Cumming estimation plot, the distribution of paired mean differences for exercise minus the baseline is well above the zero line. The mean difference is 1.2 and the lower 95% confidence interval does not go below the zero line. The p-value for a t-test conducted was less than 0.0001. This all indicates that the ln RMSSD was significatly higher during exercise than baseline. The mean ln RMSSD was only 0.30 greater on average during recovery than during the baseline recordings. The lower 95% CI does cross below zero and the p-value was 0.35. These results indicate that there was not a significant difference between the recovery period and the baseline.
-
-## Cohen's d Effect Size
-
-The {dabestr} package that we used above gives the raw data in a slopegraph and the estimation of the paired mean differences with a Cumming estimation plot. The package does most of the work for you, but it only gives limited ability to change the look of the set of graphs. Some people find the Cumming estimation plot difficult to interpret. 
-
-With a little more work (and a lot more code), we can manually do a similar thing making a slope graph that also shows the points and the median or mean for each time point. We can also complete an effect test and add the results of the test to the graph. Below, we use a Cohen's d effect size for normal data with equal variance for a repeated measures design.
-
-```{r}
-#| label: cohen's d effect size
-
-#make the grouping variable a factor with the levels ordered backwards to avoid getting negative effect sizes
-df$Group = factor(df$Group,
-                    levels = c("Recovery","Exercise","Baseline"))
-
-# replace the blank below with a continuous variable of interest
-dep.var <- "Measurement" 
-
-#the code below will calculate the Cohen's d effect size when variances are unequal
-    response <- dep.var
-    predictor <- "Group"
-    formula_string <- paste0(response, " ~ ", predictor)
-    formula_object <- as.formula(formula_string)
-
-#standardized effect size for normal data with equal variance
-#Cohen's d
-cohensD.results  <- 
-  rstatix::cohens_d(
-    data = df,         #put the dataframe name here
-    formula_object,            #dependent variable ~ factor
-    paired = TRUE,       #TRUE for within-subjects, FALSE for between-subjects
-    var.equal = TRUE,
-    hedges.correction = TRUE,
-    ci = TRUE,
-    conf.level = 0.95,
-    ci.type = "bca",
-    nboot = 1000)
-
-
-#make the grouping variable a factor with levels ordered by time
-df$Group = factor(df$Group,
-                    levels = c("Baseline","Exercise","Recovery"))
+#| label: graph without stats
 
 #the code below creates a plot that connects the dots within subjects
-#and also adds the Cohen's d results from the analysis above to the graph
+
 line.plot <- df  |>    
   ggplot(aes(
     x=Group, 
@@ -343,17 +295,6 @@ line.plot <- df  |>
       aes(group = 'Group' )) +
   xlab("Time of Measurement") +
   ylab("ln RMSSD") +
-  
-   labs(title = 
-          glue_data(cohensD.results[3, ], 
-                    "Exercise - Baseline: Cohen's d = {signif(unname(effsize), digits=2)} (95% CI: {signif(conf.low, digits=2)} to {signif(conf.high, digits=2)})")
-        ) +
-  
-     labs(subtitle = 
-          glue_data(cohensD.results[2, ], 
-                    "Recovery - Baseline: Cohen's d = {signif(unname(effsize), digits=2)} (95% CI: {signif(conf.low, digits=2)} to {signif(conf.high, digits=2)})")
-        ) +
-  
 
   #additional formatting
   theme_classic(base_size = 14)  +  #sets the font size
@@ -365,13 +306,129 @@ line.plot <- df  |>
 
 line.plot
 
+
 ```
 
-The resulting graph is similar to the {dabestr} package slopegraph, but here we we used ggplot and have more control to manually change things. This version of the graph includes the points representing the individual subjects (orange dots) that are connected by lines within a subject as well as a black line giving the mean among subjects for each time period. We have also manually added the results of the Cohen's d effect tests above the graph. While this graph does not include an estimation plot, it does include the results of effect tests that we can more manually control which ones we want to show.
+Please note that it is important to include units on axes. The x-axis has a category without units. The y-axis in this case also has no units. While RMSSD does have units of milliseconds, when you take the natural logarithm it becomes dimensionless.
 
-The Exercise - Baseline comparison had a large magnitude effect size of 1.8 (look at the cohensD.results dataframe and you can see how the magnitude of the effect size is categorized). The 95% Confidence interval values are also both positive, which means that the 95% CI does not cross over zero - indicating that the average ln RMSSD value was significantly greater after exercise than at baseline (you can look at the {dabestr} package Cummings estimation plot to see this shown visually). 
+It looks like exercise increased the ln RMSSD and then it went back down to something similar to the baseline during recovery. But how big is the difference?
 
-The Recovery - Baseline comparison had a small magnitude effect size of 0.33. The lower 95% CI was negative (below zero), but the upper 95% CI was positive (above zero). This indicates that the 95% CI crosses zero (again, you can look at the {dabestr} package Cummings estimation plot to see this shown visually) and means that the average ln RMSSD value was not significantly different from baseline.
 
-These two different analyses gave the same general results. The only difference in how the results are displayed. You can choose which one you prefer of these two options (don't give both!).
+## Effect Size
 
+An effect size tells us how big a difference is and whether that difference is significantly different from zero.  
+
+How do we know if there is a difference in the HRV value during exercise? We use inferential statistics to help us determine whether a sample can help tell us about the full population and make comparisons. In this case, we want to compare between two groups at a time: baseline vs exercise to tell us if exercise had an impact, and baseline vs recovery to see if ln RMSSD returned to the baseline value.
+
+You will learn much more about inferential statistics in a full statistics course. In this class, we are just going to discuss effect sizes. An effect size tells us how big the difference is between groups. A standardized effect size takes the difference between groups but also divides that difference by some measure of variability.
+
+To pick the right test, we need to determine if the distribution is normal and if the variance is equal.
+
+-   **Normal Distribution, Equal Variance:** If the data is normal, and the two groups have similar dispersion (i.e. similar variance), then you should use "regular" **Cohen's d effect size (*d*)**
+
+-   **Unequal Variance:** If the data has unequal dispersion (i.e. unequal variance), then you should use the **Cohen's d for Welch test effect size (*d*)**
+
+-   **Non-normal Distribution, Equal Variance:** If the data is NOT normal but the two groups have similar dispersion (i.e. similar variance), then you should use the **Wilcoxon effect size (*r*)** (note that some statisticians recommend to use the Cohen's d for Welch test effect size if the variance is very different even if the distribution is not normal)
+
+We already tested the distribution above and found that it was normal for this demo dataset. Note that the variance is the square of the standard deviation. So just look at the SD values in the full descriptive statistics table to see if the SD is fairly similar. Since the SD for the recovery time period was almost twice as large as the baseline, we used the **Cohen's d for Welch test effect size (*d*)** below.
+
+```{r}
+#| label: cohen's d effect size
+
+
+#set the formula to use the defined variables 
+#this makes it easier to change the variables at the top and rerun everything 
+#without having to retype the variables in every code chunk
+    response <- cont.var
+    predictor <- factor.var
+    formula_string <- paste0(response, " ~ ", predictor)
+    formula_object <- as.formula(formula_string)
+
+#standardized effect size for normal data with unequal variance
+#Cohen's d
+effectSize.results  <- 
+  rstatix::cohens_d(
+    data = df,           #put the dataframe name here
+    formula_object,      #continuous variable ~ factor (see above)
+    paired = TRUE,       #TRUE for within-subjects, FALSE for between-subjects
+    var.equal = FALSE,   #TRUE for equal variance, FALSE for unequal variance
+    hedges.correction = TRUE,
+    ci = TRUE,
+    conf.level = 0.95,
+    ci.type = "bca",
+    nboot = 1000)
+
+effectSize.results <- effectSize.results |> 
+ mutate(comparison = paste(group1, group2, sep = "-")) 
+
+effectSize.results
+
+
+
+```
+
+The effect size is the difference between typical values standardized by the amount of variation in the data (the exact equation depends on which effect size you use). The effect size here was calculated by taking 1000 bootstrapped random samples and the 95% confidence intervals were calculated with the adjusted bootstrap percentile (BCa) method.
+
+The interpretation of the standardized effect size is included in the magnitude column - negligible, small, moderate, or large. This will help you determine if the difference between means or medians is meaningful or not. The 95% confidence intervals tells you how precisely the effect size was estimated. If the 95% confidence interval does not include zero, it suggests that the effect is statistically significant
+
+The Baseline - Exercise comparison had a large magnitude effect size of -1.8 (the value is negative because it subtracted Exercise from the Baseline and Exercise was greater, also note that we usually round effect sizes to 2 significant figures). The 95% Confidence interval values were also both negative, which means that the 95% CI does not cross over zero - indicating that the average ln RMSSD value was significantly greater after exercise than at baseline. 
+
+The Baseline - Recovery comparison had a small magnitude effect size of -0.33. The lower 95% CI was negative (below zero), but the upper 95% CI was positive (above zero). This indicates that the 95% CI crosses zero and means that the average ln RMSSD value was not significantly different from baseline.
+
+::: {.callout-note appearance="minimal"}
+## Optional Additional Resources on Effect Sizes
+
+-   How to use the `rstatix` package to calculate effect sizes
+
+    -   **Cohen’s d for Student t-test** on the [T-test Effect Size using Cohen's d Measure](https://www.datanovia.com/en/lessons/t-test-effect-size-using-cohens-d-measure/) webpage
+
+    -   **Cohen’s d for Welch test** on the [T-test Effect Size using Cohen's d Measure](https://www.datanovia.com/en/lessons/t-test-effect-size-using-cohens-d-measure/) webpage
+
+    -   **Effect size** under **Wilcoxon rank sum test** on the [Wilcoxon Test in R](https://www.datanovia.com/en/lessons/wilcoxon-test-in-r/) webpage
+
+-   To learn more about inferential tests to compare two groups
+
+    -   compare means with normal distribution: [t-Test](https://datatab.net/tutorial/t-test)
+
+    -   rank-sum test to compare two independent samples that are not normally distributed: [Mann-Whitney U-Test](https://datatab.net/tutorial/mann-whitney-u-test)
+
+    -   signed-rank test to compare paired groups that are not normally distributed: [Wilcoxon signed-rank test](https://datatab.net/tutorial/wilcoxon-test)
+
+-   [Alternatives to P value: confidence interval and effect size](https://pmc.ncbi.nlm.nih.gov/articles/PMC5133225/)
+:::
+
+
+Let's make a graph of the effect size results to make it more visual 
+
+
+```{r}
+
+
+#the code below creates a plot that connects the dots within subjects
+#and also adds the Cohen's d results from the analysis above to the graph
+effect.plot <- effectSize.results  |>    
+  ggplot(aes(
+    x=comparison, 
+    y=effsize)) +
+  
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high),
+                  size = 1, # Adjust point size
+                  linewidth = 0.8, # Adjust line thickness
+                  color = "steelblue") + # Set color
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") + # Add a reference line at 0
+  xlab("Comparison") +
+  ylab("Standardized Effect Size") +
+  #additional formatting
+  theme_classic(base_size = 14)  +  #sets the font size
+   theme(
+    plot.title = element_text(size = 12),  # Set title size
+    plot.subtitle = element_text(size = 12) # Set subtitle size to the same value
+  ) +
+  theme(legend.position = "none")   #controls legend/key
+
+effect.plot
+
+```
+
+This shows the effect size results visually. In this case, the points represent the value of the Cohen's d for Welch test for three comparisons, and the vertical lines represent the 95% confidence interval calculated using the adjusted bootstrap percentile (BCa) method.
+If the 95% CI includes zero (shown by crossing over the dotted line), then that effect size is not significantly different from zero (meaning there is no evidence of an effect). Thus, this indicates that exercise had a large, significant effect on ln RMSSD. This also indicates that the ln RMSSD returned to values similar to baseline during recovery (there was only a small but NOT significant effect when comparing baseline and recovery).

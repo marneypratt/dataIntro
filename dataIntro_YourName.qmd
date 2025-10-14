@@ -69,12 +69,6 @@ hrvData <- hrvData |>
   left_join(subjects) |> 
   set_variable_labels(!!!variable_labels)
 
-#if you want to remove an outlier
-#fill in the blank with the number of the subject you want to remove
-#remove the hashtags in front of the code below
-# hrvData2 <- hrvData |> 
-#   dplyr::filter(subject != ___)
-
 
 # for more help with labeling data see   
 # https://www.pipinghotdata.com/posts/2022-09-13-the-case-for-variable-labels-in-r/    
@@ -98,21 +92,14 @@ Please **ONLY** replace things in the blanks as directed. Do not change anything
 #replace the blank with the continuous variable of choice 
 cont.var <- "___" 
 
-#replace both of the blanks below with the categorical variable that is your factor (this is the grouping variable)
+#replace the blank below with the categorical variable that is your factor (this is the grouping variable)
 factor.var <- "___"
-predictor <- "___"
 
 #replace the blank with the name of the column that contains your subject identifiers
 subject.ID <- "___"
 
 #replace the blank with the name of your dataframe here 
 df <- ___
-
-#define the formula using variable names above
-    response <- cont.var
-    formula_string <- paste0(response, " ~ ", predictor)
-    formula_object <- as.formula(formula_string)
-
 
 
 ```
@@ -162,45 +149,93 @@ If the output is hard to read because of a smaller screen, try clicking the "Sho
 
 How do we report these values? We have to round appropriately and include the correct units as well as decide which subset of these values to report.
 
-Before we decide which descriptive statistics to report, let's see if the data has a normal distribution
+To help us decide which descriptive statistics to report, let's see if the data has a normal distribution
 
+### Test Assumption
 
-### Test for Normal Distribution
-
-Run the code chunk below (if it gives you warnings with the output, try running it a second time. For some reason, it usually works the second time)
+First we will use a QQ plot to see if the distribution is normal
 
 ```{r}
-#| label: test assumptions
+#| label: normal distribution
+
+#make a QQ plot for the continuous variable
+#this tests to see if each group has a normal distribution
+ggpubr::ggqqplot(
+  data = df,                  #put the data frame here 
+  x = {{ cont.var }},            #put the continuous variable here
+  facet.by = {{ factor.var }}  #put the factor variable here
+)  
+
+```
 
 
-#Test to see if each group has a normal distribution
-ggpubr::ggqqplot(data = df, 
-                 x = {{ cont.var }}, 
-                 facet.by = "test.period"
-                 )
+Above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). If the data is normal, then the points are mostly aligned on the black line and within the gray shadded area (which is the 95% confidence interval).
 
+Next, we will look for outliers.
+
+```{r}
+#| label: test for outliers
 
 #test for outliers
 df  |> 
   group_by(.data[[factor.var]])  |> 
-  rstatix::identify_outliers(.data[[cont.var]])
+  rstatix::identify_outliers({{ cont.var }}) 
+
+```
+
+
+The result above shows how many rows (if any) contain outliers. If it says 0 rows, that would indicate that there were no outliers. 
+
+You may want to click on the little "Show in new window" icon at the top right of the results to see the whole table of results more easily. Either way, make sure you fully scroll to the right to see the last column in the results labeled "is.extreme". If there are any extreme outliers, you may want to filter those subjects out and rerun the descriptive statistics. 
+
+If there are no extreme outliers, then delete the code chunk below. If there are outliers that you remove, you must note that you removed them and why in your results (you might want to look at the information about the subject to see if you can see why they were an outlier or make sure you wrote the values down correctly in the original spreadsheet)
+
+```{r}
+#| label: remove outliers
+
+#if you want to remove an outlier
+#fill in the blank with the number of the subject you want to remove
+
+
+df <- df |> 
+  dplyr::filter(subject != 7)
+
+
+
+df.sum.outlierRemoved <- df  |>  
+  # remove missing values from continuous variable
+  filter(!is.na(.data[[cont.var]])) |> 
+  
+  # Group the data by your categorical variable
+  group_by(.data[[factor.var]]) |> 
+  
+  # calculate the descriptive stats
+  summarize(mean = mean(.data[[cont.var]]), 
+            median = median(.data[[cont.var]]), 
+            SD = sd(.data[[cont.var]]), 
+            IQR = IQR(.data[[cont.var]]), 
+            min = min(.data[[cont.var]]),
+            max = max(.data[[cont.var]]),
+            N = n())
+
+df.sum.outlierRemoved
 
 
 ```
 
-The first results window to the left above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). If the points are mostly close to the line and don't stray much outside of the grey shaded area, this indicates that the data are pretty normally distributed.
+## Reporting Descriptive Statistics
 
-The second results window to the right above shows how many rows contain outliers. If it says 0 rows, that would indicate that there are no outliers. If there are outliers, you can run the whole analysis with and without the outliers to see if that changes the outcome. 
+It is not always necessary to give the values of the descriptive statistics. Especially in a presentation, you want to minimize text and it is usually better to show things visually (in a graph) rather than textually (in a table). 
 
-If the data are close enough to a normal distribution, then you can report the mean and SD. If the data are not very normal, then use the median and IQR or range for the descriptive statistics (for smaller datasets, I usually recommend using the median and range).
+However, if you want to report any of the descriptive statistics, which ones should you report? If the data are close enough to a normal distribution, then you can report the mean and SD. If the data are not very normal, then use the median and IQR or range for the descriptive statistics (for smaller datasets, I usually recommend using the median and range).
 
-Once we know which values we want to report, we still need to decide how to round these values.
+We also need to decide how to round these values.
 
 A good rule of thumb is to use the SD as the indicator of how much average variability there is in your data. Personally, I like to round the SD to 2 significant digits based on recommendations in [Cole et al. (2015)](https://www-ncbi-nlm-nih-gov.libproxy.smith.edu/pmc/articles/PMC4483789/). Then round all the other values to the same decimal place as the rounded SD.
 
 Start by rounding the standard deviation (SD) to 2 SIGNIFICANT DIGITS.
 
-We will use the `signif` function with `digits=2` to round the SD to 2 significant digits. replace the blanks below as directed then run the code.
+We will use the `signif` function with `digits=2` to round the SD to 2 significant digits. 
 
 ```{r}
 #| label: rounded SD
@@ -216,6 +251,8 @@ df  |>
   summarize(SD = signif(sd(.data[[cont.var]]), digits=2))
 
 ```
+
+
 To round other values (mean, median, quartiles, etc), round to the same DECIMAL place as the SD rounded to 2 significant figures. Rounding the SD tells us how variable the data are and how many decimals we can report to. Thus, look at what decimal place the SD was rounded to for 2 significant digits.
 
 We will use the `round` function to round our values. This is what the help file says about the `round` function
@@ -246,24 +283,48 @@ Make sure to replace the blank in the script template with the proper rounding d
 
 ```
 
-## Statistical Results and Graph
+## HRV Graph
 
-Pick which way you want to analyze and graph your data (repeated measures estimation statistics using the {dabestr} package or runing Cohen's d effect size tests). Then copy the code from the script templates and paste it below.
-
-Make sure to replace the blanks in the script templates as directed
+First let's graph the HRV variable. 
 
 ```{r}
-#| label: inferential stats and graph
+#| label: HRV graph
 
+#the code below creates a plot that connects the dots within subjects
 
+line.plot <- df  |>    
+  ggplot(aes(
+    x=.data[[factor.var]], 
+    y=.data[[cont.var]], 
+    group = .data[[subject.ID]])) +
+  geom_point(size = 3,  
+             color = "orange", 
+             alpha = 0.5) +
+  geom_line(linewidth = 0.2, 
+            alpha = 0.5) + 
+  stat_summary(fun = mean,         #change this to median if your data are not normal
+               fun.min = mean,     #change this to median if your data are not normal
+               fun.max = mean,     #change this to median if your data are not normal
+               geom = "crossbar", 
+               color = "black",
+               width = 0.2, 
+               size = 0.5,
+       aes(group = .data[[factor.var]] )) +
+  
+  #below gives you the nice labels for the axis titles 
+  #You can use spaces and capital letters here
+  #see the "axis.labels.R" script template if you need superscripts
+  xlab("Time of Measurement") +
+  ylab("SDNN (ms)") +  #make sure to include units here as needed
 
+  #additional formatting
+  theme_classic(base_size = 14)  +  #sets the font size
+  theme(legend.position = "none")   #controls legend/key
 
-
-
+line.plot
 
 ```
-
-## Saving and Exporting your Graph
+Make sure you have inlcuded proper axis titles that include units where needed. Make sure to also use the correct measure of central tendency (mean if data are normal, median if data are not normal). You can change the stat_summary code above from mean to median as needed.
 
 How do you save a copy of your graph to use elsewhere?
 
@@ -272,16 +333,17 @@ The simplest thing to do is probably just right-click (Windows) or control-click
 When saving with the `ggsave()` function, you need to name the resulting file with surrounding " ", and indicate the size via height, width, and units. Don't forget to save the graph with a dpi call between 300-500 to make it nice and crisp! Look at the `ggsave()` help file for more information and options.
 
 ```{r}
-#| label: Save your graph 
+#| label: Save your HRV graph 
 #| eval: false  
 
 # save the graph! (.png or .jpg file types are recommended)
-ggsave(filename = "HRVgraph.png",  
+ggsave(filename = "results/HRVgraph.png",  
+       plot = line.plot,   #put the object name of your plot here
        height = 5, width = 8, units = "in", 
        dpi = 300)
 ```
 
-The above code will save the last graph you made and call it "HRVgraph.png". This file will appear in the dataIntro folder under the Files tab in the lower right quadrant of this window.
+The above code will save the last graph you made and call it "HRVgraph.png". This file will appear in the results folder within the dataIntro folder under the Files tab in the lower right quadrant of this window.
 
 If you are working on the Smith server, you will first need to export this file to your computer:
 
@@ -292,6 +354,122 @@ If you are working on the Smith server, you will first need to export this file 
 -   Select "Export" and then save the file to your computer
 
 You can now insert this graph into your Results slide (see the lab notebook entry for today for more details).
+
+
+## Effect Size
+
+An effect size tells us how big a difference is and whether that difference is significantly different from zero.  
+
+How do we know if there is a difference in the HRV value during exercise? We use inferential statistics to help us determine whether a sample can help tell us about the full population and make comparisons. In this case, we want to compare between two groups at a time: baseline vs exercise to tell us if exercise had an impact, and baseline vs recovery to see if ln RMSSD returned to the baseline value.
+
+You will learn much more about inferential statistics in a full statistics course. In this class, we are just going to discuss effect sizes. An effect size tells us how big the difference is between groups. A standardized effect size takes the difference between groups but also divides that difference by some measure of variability.
+
+To pick the right test, we need to determine if the distribution is normal and if the variance is equal.
+
+-   **Normal Distribution, Equal Variance:** If the data is normal, and the two groups have similar dispersion (i.e. similar variance), then you should use "regular" **Cohen's d effect size (*d*)**
+
+-   **Unequal Variance:** If the data has unequal dispersion (i.e. unequal variance), then you should use the **Cohen's d for Welch test effect size (*d*)**
+
+-   **Non-normal Distribution, Equal Variance:** If the data is NOT normal but the two groups have similar dispersion (i.e. similar variance), then you should use the **Wilcoxon effect size (*r*)** (note that some statisticians recommend to use the Cohen's d for Welch test effect size if the variance is very different even if the distribution is not normal)
+
+Go to the script_templates folder and then the effectSize subfolder. Select the correct effect size based on your data. Select the entire script (control-A or command-A), copy it (control-C or command-C), paste it in the code chunk below (control-V or command-V), and then run it.
+
+```{r}
+#| label: effect size
+
+
+
+
+
+```
+
+The effect size is the difference between typical values standardized by the amount of variation in the data (the exact equation depends on which effect size you use). The effect size here was calculated by taking 1000 bootstrapped random samples and the 95% confidence intervals were calculated with the adjusted bootstrap percentile (BCa) method.
+
+The interpretation of the standardized effect size is included in the magnitude column - negligible, small, moderate, or large. This will help you determine if the difference between means or medians is meaningful or not. The 95% confidence intervals tells you how precisely the effect size was estimated. If the 95% confidence interval does not include zero, it suggests that the effect is statistically significant
+
+::: {.callout-note appearance="minimal"}
+## Optional Additional Resources on Effect Sizes
+
+-   How to use the `rstatix` package to calculate effect sizes
+
+    -   **Cohen’s d for Student t-test** on the [T-test Effect Size using Cohen's d Measure](https://www.datanovia.com/en/lessons/t-test-effect-size-using-cohens-d-measure/) webpage
+
+    -   **Cohen’s d for Welch test** on the [T-test Effect Size using Cohen's d Measure](https://www.datanovia.com/en/lessons/t-test-effect-size-using-cohens-d-measure/) webpage
+
+    -   **Effect size** under **Wilcoxon rank sum test** on the [Wilcoxon Test in R](https://www.datanovia.com/en/lessons/wilcoxon-test-in-r/) webpage
+
+-   To learn more about inferential tests to compare two groups
+
+    -   compare means with normal distribution: [t-Test](https://datatab.net/tutorial/t-test)
+
+    -   rank-sum test to compare two independent samples that are not normally distributed: [Mann-Whitney U-Test](https://datatab.net/tutorial/mann-whitney-u-test)
+
+    -   signed-rank test to compare paired groups that are not normally distributed: [Wilcoxon signed-rank test](https://datatab.net/tutorial/wilcoxon-test)
+
+-   [Alternatives to P value: confidence interval and effect size](https://pmc.ncbi.nlm.nih.gov/articles/PMC5133225/)
+:::
+
+
+Let's make a graph of the effect size results to make it more visual 
+
+
+```{r}
+#| label: effect size graph
+
+effect.plot <- effectSize.results  |>    
+  ggplot(aes(
+    x=comparison, 
+    y=effsize)) +
+  
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high),
+                  size = 1, # Adjust point size
+                  linewidth = 0.8, # Adjust line thickness
+                  color = "steelblue") + # Set color
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") + # Add a reference line at 0
+  xlab("Comparison") +
+  ylab("Standardized Effect Size") +
+  #additional formatting
+  theme_classic(base_size = 14)  +  #sets the font size
+   theme(
+    plot.title = element_text(size = 12),  # Set title size
+    plot.subtitle = element_text(size = 12) # Set subtitle size to the same value
+  ) +
+  theme(legend.position = "none")   #controls legend/key
+
+effect.plot
+
+```
+
+This shows the effect size results visually. In this case, the points represent the value of the effect size that you chose (Cohen's d, Cohen's d for Welch test, or the Wilcoxon paired signed-rank test) for three comparisons, and the vertical lines represent the 95% confidence interval calculated using the adjusted bootstrap percentile (BCa) method.
+
+If the 95% CI includes zero (shown by crossing over the dotted line), then that effect size is not significantly different from zero (meaning there is no evidence of an effect). 
+
+Let's use `ggsave()` again to save a copy of the effect size graph.
+
+```{r}
+#| label: Save your effect size graph 
+#| eval: false  
+
+# save the graph! (.png or .jpg file types are recommended)
+ggsave(filename = "results/EffectSizeGraph.png",  
+       plot = effect.plot,   #put the object name of your plot here
+       height = 5, width = 8, units = "in", 
+       dpi = 300)
+```
+
+The above code will save your effect size graph you made and call it "EffectSizeGraph.png". This file will appear in the results folder within dataIntro folder under the Files tab in the lower right quadrant of this window.
+
+If you are working on the Smith server, you will first need to export this file to your computer:
+
+-   Check the box next to the "EffectSizeGraph.png" file
+
+-   Go to the "More" menu with the gear icon and click the drop down arrow
+
+-   Select "Export" and then save the file to your computer
+
+You can now insert this graph into your Results slide (see the lab notebook entry for today for more details).
+
+
 
 ## Render this File to HTML & Print to PDF
 

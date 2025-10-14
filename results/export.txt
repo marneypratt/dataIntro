@@ -1,0 +1,7 @@
+If you are working on the Smith server, you will first need to export your graph file to your computer:
+  
+-   Check the box next to the "datavizGraph.png" file
+
+-   Go to the "More" menu with the gear icon and click the drop down arrow
+
+-   Select "Export" and then save the file to your computer
