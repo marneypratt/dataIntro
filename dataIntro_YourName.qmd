@@ -295,6 +295,8 @@ Make sure to replace the blank in the script template with the proper rounding d
 
 First let's graph the HRV variable. 
 
+Make sure to fill in the blank with your HRV variable name for the y-axis label (`ylab()` function). This will be the label on your Y-axis, so it can look nicer and should have the units included as needed.
+
 ```{r}
 #| label: HRV graph
 
@@ -323,7 +325,7 @@ line.plot <- df  |>
   #You can use spaces and capital letters here
   #see the "axis.labels.R" script template if you need superscripts
   xlab("Time of Measurement") +
-  ylab("SDNN (ms)") +  #make sure to include units here as needed
+  ylab("___") +  #make sure to include units here as needed
 
   #additional formatting
   theme_classic(base_size = 14)  +  #sets the font size
