@@ -1,5 +1,6 @@
 ---
-title: "Practice Data Analysis Results"
+title: "dataIntro_YourName"
+subtitle: "Practice Data Analysis Results"
 author: "Your Name Here"
 date: "October , 2025"
 format: 
@@ -11,6 +12,16 @@ format:
 ## Save as
 
 Before you get started, save this file as "dataIntro_YourName.qmd" where you replace YourName with your actual name (no spaces). 
+
+## Update the YAML
+
+Make sure you update the following items in the YAML (lines 1 to 10) above:
+
+- title: replace YourName with your first and last name with no spaces (example: "dataIntro_SophiaSmith")
+- author: replace "Your Name Here" with your full name with spaces (example: "Sophia Smith")
+- date: add today's date here
+
+Leave everything else the same
 
 ## Load necessary packages
 
@@ -35,8 +46,6 @@ library(labelled) #for labeling variables better
 ```
 
 ## Import Data
-
-Set your dependent variable (x.var) and independent variable (predictor) in the blanks below.
 
 Run the code chunk below to import the data.
 
@@ -75,7 +84,7 @@ hrvData <- hrvData |>
 
 Take a look at the dataset we just created by clicking on "hrvData" in the Environment tab in the upper right RStudio window.
 
-hrvData is a tidy data spreadsheet. There are 20 columns and 33 observations in each column. Each column has a column name and a more descriptive label that we added using the `set_variable_labels` function from the `labelled` package.
+hrvData is a tidy data spreadsheet. There are 20 columns and 33 observations in each column. Each column has a column name and a more descriptive label that we added using the `set_variable_labels` function from the `labelled` package. the metadata dataset has the list of all the variables including the units.
 
 Recall that each subject had their heart beats recorded during a 5 min baseline recording, during 5 minutes of exercise, and 5 minutes of recovery.
 
@@ -168,7 +177,7 @@ ggpubr::ggqqplot(
 ```
 
 
-Above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). If the data is normal, then the points are mostly aligned on the black line and within the gray shadded area (which is the 95% confidence interval).
+Above shows a Q-Q plot (quantile-quantile plot) for each group comparing to a normal distribution in a graphical manner (see this [Complete Guide: How to Interpret Q-Q Plots](https://www.statology.org/qq-plot-interpretation/) if you want to learn more). If the data is normal, then the points are mostly aligned on the black line and within the gray shaded area (which is the 95% confidence interval).
 
 Next, we will look for outliers.
 
@@ -193,11 +202,11 @@ If there are no extreme outliers, then delete the code chunk below. If there are
 #| label: remove outliers
 
 #if you want to remove an outlier
-#fill in the blank with the number of the subject you want to remove
+#fill in the blank with the number of the subject ID you want to remove
 
 
 df <- df |> 
-  dplyr::filter(subject != 7)
+  dplyr::filter(subject != __)
 
 
 
@@ -360,7 +369,7 @@ You can now insert this graph into your Results slide (see the lab notebook entr
 
 An effect size tells us how big a difference is and whether that difference is significantly different from zero.  
 
-How do we know if there is a difference in the HRV value during exercise? We use inferential statistics to help us determine whether a sample can help tell us about the full population and make comparisons. In this case, we want to compare between two groups at a time: baseline vs exercise to tell us if exercise had an impact, and baseline vs recovery to see if ln RMSSD returned to the baseline value.
+How do we know if there is a difference in the HRV value during exercise? We use inferential statistics to help us determine whether a sample can help tell us about the full population and make comparisons. In this case, we want to compare between two groups at a time: baseline vs exercise to tell us if exercise had an impact, and baseline vs recovery to see if HRV variable returned to the baseline value.
 
 You will learn much more about inferential statistics in a full statistics course. In this class, we are just going to discuss effect sizes. An effect size tells us how big the difference is between groups. A standardized effect size takes the difference between groups but also divides that difference by some measure of variability.
 
@@ -385,7 +394,7 @@ Go to the script_templates folder and then the effectSize subfolder. Select the 
 
 The effect size is the difference between typical values standardized by the amount of variation in the data (the exact equation depends on which effect size you use). The effect size here was calculated by taking 1000 bootstrapped random samples and the 95% confidence intervals were calculated with the adjusted bootstrap percentile (BCa) method.
 
-The interpretation of the standardized effect size is included in the magnitude column - negligible, small, moderate, or large. This will help you determine if the difference between means or medians is meaningful or not. The 95% confidence intervals tells you how precisely the effect size was estimated. If the 95% confidence interval does not include zero, it suggests that the effect is statistically significant
+The interpretation of the standardized effect size is included in the magnitude column - negligible, small, moderate, or large. This will help you determine if the difference between means or medians is meaningful or not. The 95% confidence intervals tells you how precisely the effect size was estimated. If the 95% confidence interval does not include zero, it suggests that the effect is statistically significant.
 
 ::: {.callout-note appearance="minimal"}
 ## Optional Additional Resources on Effect Sizes
