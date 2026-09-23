@@ -2,7 +2,7 @@
 
 ### by Marney Pratt
 
-### Last updated on September 25, 2025
+### Last updated on September 24, 2026
 
 This webpage details how to download the Introduction to Data Analysis for Bio 201 set of activities.
 
@@ -36,11 +36,10 @@ If you are working on your desktop, make sure you have the following packages in
 * `tidyverse`
 * `ggbeeswarm`
 * `usethis`
-* `dabestr`
 * `flextable`
 * `rstatix`
 * `ggpubr`
 * `labelled`
-* `glue`
+* `patchwork`
 
 

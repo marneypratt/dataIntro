@@ -2,7 +2,7 @@
 title: "dataIntro_YourName"
 subtitle: "Practice Data Analysis Results"
 author: "Your Name Here"
-date: "October , 2025"
+date: "September , 2026"
 format: 
   html:
     code-overflow: wrap
@@ -84,7 +84,7 @@ hrvData <- hrvData |>
 
 Take a look at the dataset we just created by clicking on "hrvData" in the Environment tab in the upper right RStudio window.
 
-hrvData is a tidy data spreadsheet. There are 20 columns and 33 observations in each column. Each column has a column name and a more descriptive label that we added using the `set_variable_labels` function from the `labelled` package. the metadata dataset has the list of all the variables including the units.
+hrvData is a tidy data spreadsheet. There are 20 columns and 45 observations in each column. Each column has a column name and a more descriptive label that we added using the `set_variable_labels` function from the `labelled` package. the metadata dataset has the list of all the variables including the units.
 
 Recall that each subject had their heart beats recorded during a 5 min baseline recording, during 5 minutes of exercise, and 5 minutes of recovery.
 
@@ -318,7 +318,7 @@ line.plot <- df  |>
                geom = "crossbar", 
                color = "black",
                width = 0.2, 
-               size = 0.5,
+               linewidth = 0.5,
        aes(group = .data[[factor.var]] )) +
   
   #below gives you the nice labels for the axis titles 
@@ -335,36 +335,7 @@ line.plot
 
 ```
 
-Make sure you have inlcuded proper axis titles that include units where needed. Make sure to also use the correct measure of central tendency (mean if data are normal, median if data are not normal). You can change the stat_summary code above from mean to median as needed.
-
-How do you save a copy of your graph to use elsewhere?
-
-The simplest thing to do is probably just right-click (Windows) or control-click (Mac) on the graph and select "Copy Image" and then just paste the image where you want it. However, if you want a higher quality image where you can specify the size, image quality, and file type you can use the `ggsave()` function.
-
-When saving with the `ggsave()` function, you need to name the resulting file with surrounding " ", and indicate the size via height, width, and units. Don't forget to save the graph with a dpi call between 300-500 to make it nice and crisp! Look at the `ggsave()` help file for more information and options.
-
-```{r}
-#| label: Save your HRV graph 
-#| eval: false  
-
-# save the graph! (.png or .jpg file types are recommended)
-ggsave(filename = "results/HRVgraph.png",  
-       plot = line.plot,   #put the object name of your plot here
-       height = 5, width = 8, units = "in", 
-       dpi = 300)
-```
-
-The above code will save the last graph you made and call it "HRVgraph.png". This file will appear in the results folder within the dataIntro folder under the Files tab in the lower right quadrant of this window.
-
-If you are working on the Smith server, you will first need to export this file to your computer:
-
--   Check the box next to the "HRVgraph.png" file
-
--   Go to the "More" menu with the gear icon and click the drop down arrow
-
--   Select "Export" and then save the file to your computer
-
-You can now insert this graph into your Results slide (see the lab notebook entry for today for more details).
+Make sure you have included proper axis titles that include units where needed. Make sure to also use the correct measure of central tendency (mean if data are normal, median if data are not normal). You can change the stat_summary code above from mean to median as needed.
 
 
 ## Effect Size
@@ -442,8 +413,9 @@ effect.plot <- effectSize.results  |>
   #additional formatting
   theme_classic(base_size = 14)  +  #sets the font size
    theme(
-    plot.title = element_text(size = 12),  # Set title size
-    plot.subtitle = element_text(size = 12) # Set subtitle size to the same value
+    plot.title = element_text(size = 12),  #Set title size
+    plot.subtitle = element_text(size = 12), #Set subtitle size 
+    axis.text.x = element_text(size = 7) #Set x axis label size
   ) +
   theme(legend.position = "none")   #controls legend/key
 
@@ -455,31 +427,49 @@ This shows the effect size results visually. In this case, the points represent 
 
 If the 95% CI includes zero (shown by crossing over the dotted line), then that effect size is not significantly different from zero (meaning there is no evidence of an effect). 
 
+
+## Join Original Graph and Effect Size Results
+
+Now let's make one image that joins your original graph with the effect size results graph together.
+
+```{r}
+#| label: data plus effect size graph
+
+patch.plot <- line.plot + effect.plot +
+  plot_layout(widths = c(2, 2))
+
+patch.plot 
+
+```
+
+
+
+
 Let's use `ggsave()` again to save a copy of the effect size graph.
 
 ```{r}
-#| label: Save your effect size graph 
+#| label: Save your graph 
 #| eval: false  
 
-# save the graph! (.png or .jpg file types are recommended)
-ggsave(filename = "results/EffectSizeGraph.png",  
-       plot = effect.plot,   #put the object name of your plot here
+# save the graph
+# recommended to use.png or .jpg file types
+ggsave(filename = "results/practiceDataResults.png",  
+       plot = patch.plot,   #put the object name of your plot here
        height = 5, width = 8, units = "in", 
        dpi = 300)
 ```
 
-The above code will save your effect size graph you made and call it "EffectSizeGraph.png". This file will appear in the results folder within dataIntro folder under the Files tab in the lower right quadrant of this window.
+The above code will save your effect size graph you made and call it "practiceDataResults.png". This file will appear in the results folder within dataIntro folder under the Files tab in the lower right quadrant of this window.
 
 If you are working on the Smith server, you will first need to export this file to your computer:
 
--   Check the box next to the "EffectSizeGraph.png" file
+-   Check the box next to the "practiceDataResults.png" file
 
 -   Go to the "More" menu with the gear icon and click the drop down arrow
 
 -   Select "Export" and then save the file to your computer
 
 You can now insert this graph into your Results slide (see the lab notebook entry for today for more details).
-
 
 
 ## Render this File to HTML & Print to PDF
