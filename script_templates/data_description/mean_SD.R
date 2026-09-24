@@ -32,18 +32,4 @@ df.sum <- df |>
             SD = signif(sd(.data[[cont.var]]), digits=2),
             N = n())
 
-#create the formatted table
-ft <- flextable(df.sum,
-                cwidth = 0.75) |>  #can vary cell width as needed
-  
-  #bold the headings
-  bold(part = "header") |> 
-  
-  #center columns
-  align(align = "center", part = "all" )
-
-#print the table
-#right click on the table, choose select all, 
-#choose copy, then paste in your document
-#finish formatting as needed in your document
-ft
+df.sum

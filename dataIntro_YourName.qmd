@@ -2,7 +2,8 @@
 title: "dataIntro_YourName"
 subtitle: "Practice Data Analysis Results"
 author: "Your Name Here"
-date: "September , 2026"
+date: today
+date-format: long
 format: 
   html:
     code-overflow: wrap
@@ -19,7 +20,6 @@ Make sure you update the following items in the YAML (lines 1 to 10) above:
 
 - title: replace YourName with your first and last name with no spaces (example: "dataIntro_SophiaSmith")
 - author: replace "Your Name Here" with your full name with spaces (example: "Sophia Smith")
-- date: add today's date here
 
 Leave everything else the same
 
@@ -37,7 +37,6 @@ It is recommended that you put all your code to load packages in one R chunk at 
 suppressPackageStartupMessages(
   library(tidyverse)) ## for readr, dplyr, ggplot2
 library(ggbeeswarm) ## for jittering points (you can remove this if you did not use a dotplot)
-library(flextable) ## for making formatted tables that can be pasted into Word or Google Docs
 library(rstatix) #pipe friendly framework for basic stats
 library(ggpubr) #publication ready plots & QQ plots
 library(labelled) #for labeling variables better
@@ -233,7 +232,7 @@ df.sum.outlierRemoved
 
 ## Reporting Descriptive Statistics
 
-It is not always necessary to give the values of the descriptive statistics. Especially in a presentation, you want to minimize text and it is usually better to show things visually (in a graph) rather than textually (in a table). 
+It is not always necessary to give the values of the descriptive statistics. Especially in a presentation (which is the way we will report results for the project in this course), you want to minimize text and it is usually better to show things visually (in a graph) rather than textually (in a table). 
 
 However, if you want to report any of the descriptive statistics, which ones should you report? If the data are close enough to a normal distribution, then you can report the mean and SD. If the data are not very normal, then use the median and IQR or range for the descriptive statistics (for smaller datasets, I usually recommend using the median and range).
 
@@ -295,7 +294,7 @@ Make sure to replace the blank in the script template with the proper rounding d
 
 First let's graph the HRV variable. 
 
-Make sure to fill in the blank with your HRV variable name for the y-axis label (`ylab()` function). This will be the label on your Y-axis, so it can look nicer and should have the units included as needed.
+Make sure to fill in the blank with your HRV variable name for the y-axis label (`ylab()` function). This will be the label on your Y-axis, so it can look nicer and should have the units included as needed. If you have milliseconds squared as the unit (any of the power variables), open the "axis.labels.R" script template and copy the appropriate line of code to replace the "ylab()" line below.
 
 ```{r}
 #| label: HRV graph

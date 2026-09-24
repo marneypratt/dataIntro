@@ -1,0 +1,42 @@
+# to use this code, the following poackages must be loaded
+# tidyverse
+# flextable
+ 
+#make sure you have imported your data and defined your variables before running this code
+
+#see https://davidgohel.github.io/flextable/ for more info & formatting options
+
+#see https://davidgohel.github.io/flextable/ for more info & formatting options
+
+# Use the following for digits in the `round` function
+# -   rounding to the hundreds place use digits=-2
+# -   rounding to the tens place use digits=-1
+# -   rounding to the ones place use digits=0
+# -   rounding to the tenths place use digits=1
+# -   rounding to the hundredths place use digits=2
+
+
+#set the number of digits to round to based on the rules above (this blank should be just a number)
+round.digit <- ___
+
+
+#calculate descriptive stats
+#replace the blank below with the name of the dataframe
+df.sum <- df |> 
+  
+  # replace the blank with the categorical variable(s)
+  group_by(.data[[factor.var]]) |> 
+  
+  # remove missing values 
+  filter(!is.na(.data[[cont.var]])) |> 
+  
+  #calculate the rounded values
+  summarise(Median = round(median(.data[[cont.var]]), digits=round.digit),
+            Q1 = round(quantile(.data[[cont.var]], 0.25), digits=round.digit),
+            Q3 = round(quantile(.data[[cont.var]], 0.75), digits=round.digit),
+            N = n()) |> 
+  mutate(IQR = paste(Q1, Q3, sep = "-")) |> 
+  dplyr::select(-Q1, -Q3) |> 
+  relocate(N, .after = last_col())
+
+df.sum

@@ -24,7 +24,7 @@ It is recommended that you put all your code to load packages in one R chunk at 
 suppressPackageStartupMessages(
   library(tidyverse)) ## for readr, dplyr, ggplot2
 library(ggbeeswarm) ## for jittering points (you can remove this is you did not use a dotplot)
-library(flextable) ## for making formatted tables that can be pasted into Word or Google Docs
+library(gt)  ## for making formatted tables
 library(dabestr) ##for data analysis using Bootstrap-coupled estimation
 library(rstatix) #pipe friendly framework for basic stats
 library(ggpubr) #publication ready plots
@@ -201,22 +201,8 @@ df.sum <- df |>
             SD = signif(sd(.data[[cont.var]]), digits=2),
             N = n())
 
+gt(df.sum)
 
-#create the formatted table
-ft <- flextable(df.sum,
-                cwidth = 0.75) |>  #can vary cell width as needed
-  
-  #bold the headings
-  bold(part = "header") |> 
-  
-  #center columns
-  align(align = "center", part = "all" )
-
-#print the table
-#right click on the table, choose select all, 
-#choose copy, then paste in your document
-#finish formatting as needed in your document
-ft
 ```
 
 If this dataset was not a normal distribution, you might choose to report the median, range (min - max), and N.
@@ -240,26 +226,7 @@ df.med <- df |>
   dplyr::select(-min, -max) |> 
   relocate(N, .after = last_col())
   
-
-
-#create the table
-ft <- flextable(df.med,
-                cwidth = 0.75) |>  #can vary cell width as needed
-  
-  #bold the headings
-  bold(part = "header") |> 
-  
-  #center columns
-  align(align = "center", part = "all" ) |> 
-  
-  set_table_properties(layout = "autofit")
-
-#print the table
-#right click on the table, choose select all, 
-#choose copy, then paste in your document
-#finish formatting as needed in your document
-ft
-
+gt(df.med)
 
 
 ```

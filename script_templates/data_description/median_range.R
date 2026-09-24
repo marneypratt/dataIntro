@@ -39,19 +39,4 @@ df.sum <- df |>
   dplyr::select(-min, -max) |> 
   relocate(N, .after = last_col())
 
-#create the formatted table
-ft <- flextable(df.sum,
-                cwidth = 0.75) |>  #can vary cell width as needed
-  
-  #bold the headings
-  bold(part = "header") |> 
-  
-  #center columns & autofit
-  align(align = "center", part = "all" ) |> 
-  set_table_properties(layout = "autofit")
-
-#print the table
-#right click on the table, choose select all, 
-#choose copy, then paste in your document
-#finish formatting as needed in your document
-ft
+df.sum
