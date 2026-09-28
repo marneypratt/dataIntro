@@ -36,10 +36,11 @@ It is recommended that you put all your code to load packages in one R chunk at 
 
 suppressPackageStartupMessages(
   library(tidyverse)) ## for readr, dplyr, ggplot2
-library(ggbeeswarm) ## for jittering points (you can remove this if you did not use a dotplot)
 library(rstatix) #pipe friendly framework for basic stats
 library(ggpubr) #publication ready plots & QQ plots
 library(labelled) #for labeling variables better
+library(gt) #for nicer looking tables that you can copy and paste
+library(patchwork) #for adding plots together
 
 
 ```
@@ -284,15 +285,22 @@ Make sure to replace the blank in the script template with the proper rounding d
 ```{r}
 #| label: formatted descriptive stats
 
+#paste the script template here
 
 
 
+
+
+
+#the code below will print your table in a nicer looking format using the gt package
+#if you want to include a table in your results, make sure you format it correctly
+gt(df.sum)
 
 ```
 
 ## HRV Graph
 
-First let's graph the HRV variable. 
+Now that we have described our data and tested assumptions, let's graph the HRV variable. 
 
 Make sure to fill in the blank with your HRV variable name for the y-axis label (`ylab()` function). This will be the label on your Y-axis, so it can look nicer and should have the units included as needed. If you have milliseconds squared as the unit (any of the power variables), open the "axis.labels.R" script template and copy the appropriate line of code to replace the "ylab()" line below.
 

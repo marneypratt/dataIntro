@@ -2,7 +2,7 @@
 
 ### by Marney Pratt
 
-### Last updated on September 24, 2026
+### Last updated on September 28, 2026
 
 This webpage details how to download the Introduction to Data Analysis for Bio 201 set of activities.
 
@@ -34,9 +34,8 @@ A new session of RStudio will open with the unzipped folder containing all the f
 If you are working on your desktop, make sure you have the following packages installed before you run through this activity:
 
 * `tidyverse`
-* `ggbeeswarm`
 * `usethis`
-* `flextable`
+* `gt`
 * `rstatix`
 * `ggpubr`
 * `labelled`
