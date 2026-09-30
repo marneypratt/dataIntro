@@ -11,6 +11,7 @@
 dataIntro_example.qmd
 dataIntro_MarneyPratt.qmd
 practiceDataResults-MP.png
+demo-data.qmd
 
 # Example code in package build process
 *-Ex.R
