@@ -366,7 +366,7 @@ Go to the script_templates folder and then the effectSize subfolder. Select the 
 ```{r}
 #| label: effect size
 
-
+#paste the script template here
 
 
 
@@ -411,7 +411,7 @@ effect.plot <- effectSize.results  |>
     y=effsize)) +
   
   geom_pointrange(aes(ymin = conf.low, ymax = conf.high),
-                  size = 1, # Adjust point size
+                  size = 0.75, # Adjust point size
                   linewidth = 0.8, # Adjust line thickness
                   color = "steelblue") + # Set color
   geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") + # Add a reference line at 0
@@ -462,7 +462,7 @@ Let's use `ggsave()` again to save a copy of the effect size graph.
 # recommended to use.png or .jpg file types
 ggsave(filename = "results/practiceDataResults.png",  
        plot = patch.plot,   #put the object name of your plot here
-       height = 5, width = 8, units = "in", 
+       height = 4.5, width = 8, units = "in", 
        dpi = 300)
 ```
 

@@ -1,10 +1,4 @@
-# to use this code, the following poackages must be loaded
-# tidyverse
-# flextable
-
-#make sure you have imported your data and defined your variables before running this code
-
-#see https://davidgohel.github.io/flextable/ for more info & formatting options
+#make sure you have loaded the tidyverse package, imported your data, and defined your variables before running this code
 
 # Use the following for digits in the `round` function
 # -   rounding to the hundreds place use digits=-2
