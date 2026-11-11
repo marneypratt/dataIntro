@@ -185,9 +185,10 @@ Next, we will look for outliers.
 #| label: test for outliers
 
 #test for outliers
-df  |> 
+outliers <- df  |> 
   group_by(.data[[factor.var]])  |> 
   rstatix::identify_outliers({{ cont.var }}) 
+outliers
 
 ```
 
